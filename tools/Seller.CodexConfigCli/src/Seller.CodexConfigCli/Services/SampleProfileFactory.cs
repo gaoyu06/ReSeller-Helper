@@ -1,0 +1,33 @@
+namespace Seller.CodexConfigCli.Services;
+
+public static class SampleProfileFactory
+{
+    public static string Create() =>
+        """
+        {
+          "user": {
+            "settings": {
+              "your.setting.key": "your-value"
+            },
+            "keybindings": [
+              {
+                "key": "ctrl+alt+c",
+                "command": "your.command.id",
+                "when": "editorTextFocus"
+              }
+            ]
+          },
+          "workspace": {
+            "settings": {
+              "your.workspace.setting": true
+            },
+            "extensions": {
+              "recommendations": [
+                "publisher.extension-id"
+              ],
+              "unwantedRecommendations": []
+            }
+          }
+        }
+        """;
+}

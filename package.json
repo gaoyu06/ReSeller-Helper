@@ -1,0 +1,12 @@
+{
+  "name": "seller-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "dev:web": "pnpm --filter seller-agent-web dev",
+    "build:web": "pnpm --filter seller-agent-web build",
+    "lint:web": "pnpm --filter seller-agent-web lint",
+    "db:push:web": "pnpm --filter seller-agent-web db:push",
+    "db:seed:web": "pnpm --filter seller-agent-web db:seed"
+  }
+}

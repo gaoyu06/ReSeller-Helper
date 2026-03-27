@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum CodeStatus {
+  UNUSED
+  USED
+  DISABLED
+}
+
+enum SessionRole {
+  ADMIN
+  AGENT
+}
+
+enum AgentReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model CodeType {
+  id              String              @id @default(cuid())
+  name            String
+  slug            String              @unique
+  description     String?
+  defaultTemplate String
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  codes           Code[]
+  permissions     AgentCodeType[]
+  templates       Template[]
+  usageLogs       UsageLog[]
+}
+
+model Code {
+  id            String      @id @default(cuid())
+  codeTypeId    String
+  value         String      @unique
+  status        CodeStatus  @default(UNUSED)
+  importBatch   String?
+  importedAt    DateTime    @default(now())
+  usedAt        DateTime?
+  usedByAgentId String?
+  codeType      CodeType    @relation(fields: [codeTypeId], references: [id], onDelete: Restrict)
+  usedByAgent   Agent?      @relation("UsedCodes", fields: [usedByAgentId], references: [id], onDelete: SetNull)
+  usageLog      UsageLog?
+
+  @@index([codeTypeId, status])
+}
+
+model Agent {
+  id            String          @id @default(cuid())
+  name          String
+  username      String          @unique
+  passwordHash  String
+  isActive      Boolean         @default(true)
+  reviewStatus  AgentReviewStatus @default(APPROVED)
+  applicationNote String?
+  reviewNote    String?
+  reviewedAt    DateTime?
+  dailyLimit    Int
+  monthlyLimit  Int
+  totalLimit    Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  permissions   AgentCodeType[]
+  templates     Template[]
+  usageLogs     UsageLog[]
+  usedCodes     Code[]          @relation("UsedCodes")
+  sessions      Session[]
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  name         String
+  username     String   @unique
+  passwordHash String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  sessions     Session[]
+}
+
+model Session {
+  id         String      @id @default(cuid())
+  tokenHash  String      @unique
+  role       SessionRole
+  adminId    String?
+  agentId    String?
+  expiresAt  DateTime
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  admin      AdminUser?  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  agent      Agent?      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([role, expiresAt])
+}
+
+model AgentCodeType {
+  id         String   @id @default(cuid())
+  agentId    String
+  codeTypeId String
+  createdAt  DateTime @default(now())
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  codeType   CodeType @relation(fields: [codeTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, codeTypeId])
+}
+
+model Template {
+  id         String   @id @default(cuid())
+  agentId    String
+  codeTypeId String
+  content    String
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  codeType   CodeType @relation(fields: [codeTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, codeTypeId])
+}
+
+model UsageLog {
+  id              String   @id @default(cuid())
+  agentId         String
+  codeTypeId      String
+  codeId          String   @unique
+  renderedContent String
+  createdAt       DateTime @default(now())
+  agent           Agent    @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  codeType        CodeType @relation(fields: [codeTypeId], references: [id], onDelete: Restrict)
+  code            Code     @relation(fields: [codeId], references: [id], onDelete: Restrict)
+
+  @@index([agentId, createdAt])
+  @@index([codeTypeId, createdAt])
+}

@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+onlyBuiltDependencies:
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "@prisma/adapter-better-sqlite3"
+  - "better-sqlite3"
+  - "prisma"
+  - "esbuild"
+  - "sharp"
+  - "unrs-resolver"

@@ -1,0 +1,22 @@
+# Node / Next
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+apps/*/node_modules/
+apps/*/.next/
+apps/*/pnpm-lock.yaml
+
+# Env / database
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+
+# .NET
+bin/
+obj/
+
+# OS
+.DS_Store
+Thumbs.db
