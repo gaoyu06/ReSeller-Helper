@@ -1,16 +1,13 @@
-import { deleteAgentTemplate, upsertAgentTemplate } from "@/app/agent/actions";
+import { deleteAgentTemplate } from "@/app/agent/actions";
 import { requireAgentSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
-  CheckboxInput,
   EmptyState,
   GhostButton,
   HiddenInput,
-  PrimaryButton,
   SectionHeader,
-  SelectInput,
-  TextArea,
 } from "@/components/admin-ui";
+import { TemplateCreateDialog } from "./template-create-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default async function AgentTemplatesPage() {
@@ -48,31 +45,18 @@ export default async function AgentTemplatesPage() {
     <main className="grid gap-5 py-1">
       <SectionHeader eyebrow="发货模板" title="发货模板" />
 
-      <div className="grid gap-4 lg:grid-cols-[0.88fr_1.12fr]">
+      <div className="flex justify-end">
         {permissions.length ? (
-          <form action={upsertAgentTemplate} className="panel grid gap-3">
-            <div className="section-label">创建或更新模板</div>
-            <SelectInput
-              name="codeTypeId"
-              label="卡密类型"
-              options={permissions.map((permission) => ({
-                value: permission.codeType.id,
-                label: permission.codeType.name,
-              }))}
-            />
-            <TextArea
-              name="content"
-              label="模板内容"
-              rows={8}
-              placeholder={"您的兑换码如下：\n{code}"}
-            />
-            <CheckboxInput name="enabled" label="保存后立即启用" defaultChecked />
-            <PrimaryButton>保存模板</PrimaryButton>
-          </form>
-        ) : (
-          <EmptyState title="还没有可配置的卡密类型" />
-        )}
+          <TemplateCreateDialog
+            options={permissions.map((permission) => ({
+              id: permission.codeType.id,
+              name: permission.codeType.name,
+            }))}
+          />
+        ) : null}
+      </div>
 
+      <div className="grid gap-4">
         <div className="grid gap-3">
           {templates.length ? (
             templates.map((template) => (
@@ -103,7 +87,7 @@ export default async function AgentTemplatesPage() {
               </Card>
             ))
           ) : (
-            <EmptyState title="还没有模板" />
+            <EmptyState title={permissions.length ? "还没有模板" : "还没有可配置的卡密类型"} />
           )}
 
           {permissions.length ? (
