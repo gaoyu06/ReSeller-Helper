@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Seller Agent Web
 
-## Getting Started
+基于 Next.js App Router 和 Prisma 的代理发码系统。
 
-First, run the development server:
+## 环境变量
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+创建 `apps/seller-agent-web/.env`：
+
+```env
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+DATABASE_URL_UNPOOLED="postgresql://user:password@host/database?sslmode=require"
+AUTH_SECRET="replace-with-a-long-random-secret"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+如果使用 Neon：
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `DATABASE_URL` 使用 pooled 连接
+- `DATABASE_URL_UNPOOLED` 使用非 pooler 连接
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 本地开发
 
-## Learn More
+```bash
+pnpm install
+pnpm prisma generate
+pnpm db:push
+pnpm db:seed
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 部署到 Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+需要在 Vercel 项目中配置：
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `DATABASE_URL`
+- `DATABASE_URL_UNPOOLED`
+- `AUTH_SECRET`
 
-## Deploy on Vercel
+首次部署前建议先在本地完成：
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm db:push
+pnpm db:seed
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 说明
+
+- 当前数据层使用 Prisma
+- 生产部署建议使用 Neon PostgreSQL
+- Session、库存、代理、模板、日志都存储在数据库中
