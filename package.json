@@ -3,6 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "scripts": {
+    "postinstall": "pnpm --filter seller-agent-web exec prisma generate",
     "dev:web": "pnpm --filter seller-agent-web dev",
     "build:web": "pnpm --filter seller-agent-web build",
     "lint:web": "pnpm --filter seller-agent-web lint",

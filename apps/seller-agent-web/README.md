@@ -21,11 +21,12 @@ AUTH_SECRET="replace-with-a-long-random-secret"
 
 ```bash
 pnpm install
-pnpm prisma generate
 pnpm db:push
 pnpm db:seed
 pnpm dev
 ```
+
+`pnpm install` 后会自动执行 `prisma generate`。
 
 ## 部署到 Vercel
 
