@@ -95,7 +95,9 @@ export async function adminLoginAction(
     };
   }
 
-  await createAdminSession(admin.id);
+  await createAdminSession(admin.id, {
+    rememberMe: formData.get("rememberMe")?.toString() === "on",
+  });
   redirect("/admin");
 }
 
@@ -151,7 +153,9 @@ export async function agentLoginAction(
     };
   }
 
-  await createAgentSession(agent.id);
+  await createAgentSession(agent.id, {
+    rememberMe: formData.get("rememberMe")?.toString() === "on",
+  });
   redirect("/agent");
 }
 

@@ -8,8 +8,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE_NAME = "seller_session";
-const SESSION_TTL_SECONDS = 60 * 60 * 12;
-const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
+const DEFAULT_SESSION_TTL_SECONDS = 60 * 60 * 12;
+const LONG_SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 type SessionResult =
   | {
@@ -105,7 +105,7 @@ export async function getCurrentSession(): Promise<SessionResult | null> {
   };
 }
 
-export async function createAdminSession(adminId: string) {
+export async function createAdminSession(adminId: string, options?: { rememberMe?: boolean }) {
   const admin = await prisma.adminUser.findUniqueOrThrow({
     where: { id: adminId },
   });
@@ -113,10 +113,11 @@ export async function createAdminSession(adminId: string) {
   await createSession({
     role: SessionRole.ADMIN,
     adminId: admin.id,
+    rememberMe: options?.rememberMe,
   });
 }
 
-export async function createAgentSession(agentId: string) {
+export async function createAgentSession(agentId: string, options?: { rememberMe?: boolean }) {
   const agent = await prisma.agent.findUniqueOrThrow({
     where: { id: agentId },
   });
@@ -128,6 +129,7 @@ export async function createAgentSession(agentId: string) {
   await createSession({
     role: SessionRole.AGENT,
     agentId: agent.id,
+    rememberMe: options?.rememberMe,
   });
 }
 
@@ -196,9 +198,11 @@ async function createSession(payload: {
   role: SessionRole;
   adminId?: string;
   agentId?: string;
+  rememberMe?: boolean;
 }) {
   const token = randomBytes(32).toString("hex");
-  const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+  const ttlSeconds = payload.rememberMe ? LONG_SESSION_TTL_SECONDS : DEFAULT_SESSION_TTL_SECONDS;
+  const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
 
   await prisma.session.create({
     data: {
@@ -216,7 +220,7 @@ async function createSession(payload: {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_TTL_SECONDS,
+    maxAge: ttlSeconds,
   });
 }
 

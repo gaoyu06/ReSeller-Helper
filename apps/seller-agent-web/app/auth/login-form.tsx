@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import type { LoginFormState } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +62,11 @@ export function LoginForm({
               autoComplete="current-password"
               placeholder="请输入密码"
             />
+          </div>
+
+          <div className="flex items-center gap-3 text-sm text-[#5f5347]">
+            <Checkbox id="login-remember-me" name="rememberMe" />
+            <Label htmlFor="login-remember-me">保持登录 30 天</Label>
           </div>
 
           {state.error ? (
