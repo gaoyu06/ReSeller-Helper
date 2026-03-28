@@ -14,6 +14,16 @@ export default async function AgentIssuePage() {
           id: permission.codeType.id,
           name: permission.codeType.name,
           description: permission.codeType.description,
+          dailyLimit: permission.dailyLimit,
+          monthlyLimit: permission.monthlyLimit,
+          totalLimit: permission.totalLimit,
+          todayIssued: permission.stats.todayIssued,
+          monthIssued: permission.stats.monthIssued,
+          totalIssued: permission.stats.totalIssued,
+          remainingToday: permission.stats.remainingToday,
+          remainingMonth: permission.stats.remainingMonth,
+          remainingTotal: permission.stats.remainingTotal,
+          availableStock: permission.stats.availableStock,
         }))}
       />
     </main>

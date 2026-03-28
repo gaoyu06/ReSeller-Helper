@@ -1,14 +1,8 @@
-import { importCodes, updateCodeStatus } from "@/app/admin/actions";
+import { deleteCode, updateCodeStatus } from "@/app/admin/actions";
 import { getDashboardData } from "@/lib/dashboard-data";
-import {
-  Badge,
-  GhostButton,
-  PrimaryButton,
-  SectionHeader,
-  SelectInput,
-  TextArea,
-  TextInput,
-} from "@/components/admin-ui";
+import { InventoryImportDialog } from "@/components/admin-dialog-forms";
+import { Badge, GhostButton, HiddenInput, SectionHeader } from "@/components/admin-ui";
+import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/ui/form-select";
 import {
   Table,
@@ -29,70 +23,53 @@ export default async function AdminInventoryPage() {
   const dashboard = await getDashboardData();
 
   return (
-    <main className="grid gap-5 py-1">
+    <main className="grid gap-4 py-1">
       <SectionHeader
         eyebrow="库存管理"
-        title="导入卡密并检查库存状态。"
-        description="按行粘贴卡密即可导入，库存始终归属于某个类型与批次标签。"
+        title="库存管理"
+        description="页面保留库存列表，导入动作改为弹窗。"
       />
 
-      <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-        <form action={importCodes} className="panel grid gap-3">
-          <div className="section-label">导入库存</div>
-          <SelectInput name="codeTypeId" label="卡密类型">
-            {dashboard.codeTypes.map((codeType) => (
-              <option key={codeType.id} value={codeType.id}>
-                {codeType.name}
-              </option>
-            ))}
-          </SelectInput>
-          <TextInput
-            name="importBatch"
-            label="批次标签"
-            placeholder="batch-2026-03-27"
-          />
-          <TextArea
-            name="codes"
-            label="卡密内容（每行一个）"
-            placeholder={"MONTH-4001\nMONTH-4002\nMONTH-4003"}
-            rows={10}
-          />
-          <PrimaryButton>导入卡密</PrimaryButton>
-        </form>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex gap-2">
+          <Badge tone="muted">可用 {dashboard.stats.unusedCodes}</Badge>
+          <Badge tone="muted">已使用 {dashboard.stats.usedCodes}</Badge>
+          <Badge tone="muted">已停用 {dashboard.stats.disabledCodes}</Badge>
+        </div>
+        <InventoryImportDialog
+          codeTypes={dashboard.codeTypes.map((codeType) => ({
+            id: codeType.id,
+            name: codeType.name,
+          }))}
+        />
+      </div>
 
-        <div className="panel overflow-x-auto">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="section-label">最近库存</div>
-            <div className="flex gap-2">
-              <Badge tone="muted">已使用 {dashboard.stats.usedCodes}</Badge>
-              <Badge tone="muted">已停用 {dashboard.stats.disabledCodes}</Badge>
-            </div>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>卡密</TableHead>
-                <TableHead>类型</TableHead>
-                <TableHead>批次</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead>使用代理</TableHead>
-                <TableHead>操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {dashboard.recentCodes.map((code) => (
-                <TableRow key={code.id}>
-                  <TableCell className="font-mono text-xs text-zinc-200">{code.value}</TableCell>
-                  <TableCell className="text-zinc-300">{code.codeType.name}</TableCell>
-                  <TableCell className="text-zinc-500">{code.importBatch || "—"}</TableCell>
-                  <TableCell>
-                    <Badge tone="muted">{statusLabels[code.status]}</Badge>
-                  </TableCell>
-                  <TableCell className="text-zinc-500">{code.usedByAgent?.name || "—"}</TableCell>
-                  <TableCell>
+      <div className="panel overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>卡密</TableHead>
+              <TableHead>类型</TableHead>
+              <TableHead>批次</TableHead>
+              <TableHead>状态</TableHead>
+              <TableHead>使用代理</TableHead>
+              <TableHead>操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {dashboard.recentCodes.map((code) => (
+              <TableRow key={code.id}>
+                <TableCell className="font-mono text-xs text-[#2c251f]">{code.value}</TableCell>
+                <TableCell className="text-[#5f5347]">{code.codeType.name}</TableCell>
+                <TableCell className="text-[#8f8172]">{code.importBatch || "—"}</TableCell>
+                <TableCell>
+                  <Badge tone="muted">{statusLabels[code.status]}</Badge>
+                </TableCell>
+                <TableCell className="text-[#8f8172]">{code.usedByAgent?.name || "—"}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-2">
                     <form action={updateCodeStatus} className="flex flex-wrap gap-2">
-                      <input type="hidden" name="id" value={code.id} />
+                      <HiddenInput name="id" value={code.id} />
                       <FormSelect
                         name="status"
                         defaultValue={code.status}
@@ -104,12 +81,22 @@ export default async function AdminInventoryPage() {
                       />
                       <GhostButton>更新</GhostButton>
                     </form>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                    <form action={deleteCode}>
+                      <HiddenInput name="id" value={code.id} />
+                      <Button
+                        type="submit"
+                        variant="danger"
+                        size="sm"
+                      >
+                        删除
+                      </Button>
+                    </form>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </main>
   );

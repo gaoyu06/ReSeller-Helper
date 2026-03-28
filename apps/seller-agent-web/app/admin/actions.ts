@@ -20,20 +20,22 @@ const agentSchema = z.object({
   name: z.string().min(2),
   username: z.string().min(2),
   password: z.string().optional(),
-  dailyLimit: z.coerce.number().int().min(1),
-  monthlyLimit: z.coerce.number().int().min(1),
-  totalLimit: z.coerce.number().int().min(1),
   isActive: z.string().optional(),
 });
 
 const reviewAgentSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(2),
+  isActive: z.string().optional(),
+  reviewNote: z.string().optional(),
+});
+
+const permissionSchema = z.object({
+  agentId: z.string().min(1),
+  codeTypeId: z.string().min(1),
   dailyLimit: z.coerce.number().int().min(1),
   monthlyLimit: z.coerce.number().int().min(1),
   totalLimit: z.coerce.number().int().min(1),
-  isActive: z.string().optional(),
-  reviewNote: z.string().optional(),
 });
 
 export async function upsertCodeType(formData: FormData) {
@@ -92,6 +94,38 @@ export async function toggleCodeTypeStatus(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function deleteCodeType(formData: FormData) {
+  await requireAdminSession();
+
+  const id = requiredString(formData.get("id"), "缺少代码类型 ID。");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.usageLog.deleteMany({
+      where: { codeTypeId: id },
+    });
+
+    await tx.template.deleteMany({
+      where: { codeTypeId: id },
+    });
+
+    await tx.agentCodeType.deleteMany({
+      where: { codeTypeId: id },
+    });
+
+    await tx.code.deleteMany({
+      where: { codeTypeId: id },
+    });
+
+    await tx.codeType.delete({
+      where: { id },
+    });
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/agent");
+}
+
 export async function upsertAgent(formData: FormData) {
   await requireAdminSession();
 
@@ -100,35 +134,18 @@ export async function upsertAgent(formData: FormData) {
     name: formData.get("name")?.toString(),
     username: formData.get("username")?.toString(),
     password: formData.get("password")?.toString() || undefined,
-    dailyLimit: formData.get("dailyLimit"),
-    monthlyLimit: formData.get("monthlyLimit"),
-    totalLimit: formData.get("totalLimit"),
     isActive: formData.get("isActive")?.toString(),
   });
-
-  if (parsed.monthlyLimit < parsed.dailyLimit) {
-    throw new Error("月额度必须大于或等于日额度。");
-  }
-
-  if (parsed.totalLimit < parsed.monthlyLimit) {
-    throw new Error("总额度必须大于或等于月额度。");
-  }
 
   if (parsed.id) {
     const data: {
       name: string;
       username: string;
-      dailyLimit: number;
-      monthlyLimit: number;
-      totalLimit: number;
       isActive: boolean;
       passwordHash?: string;
     } = {
       name: parsed.name,
       username: parsed.username,
-      dailyLimit: parsed.dailyLimit,
-      monthlyLimit: parsed.monthlyLimit,
-      totalLimit: parsed.totalLimit,
       isActive: parsed.isActive === "on",
     };
 
@@ -160,9 +177,9 @@ export async function upsertAgent(formData: FormData) {
         passwordHash: await hashPassword(parsed.password.trim()),
         reviewStatus: AgentReviewStatus.APPROVED,
         reviewedAt: new Date(),
-        dailyLimit: parsed.dailyLimit,
-        monthlyLimit: parsed.monthlyLimit,
-        totalLimit: parsed.totalLimit,
+        dailyLimit: 0,
+        monthlyLimit: 0,
+        totalLimit: 0,
         isActive: parsed.isActive === "on" || parsed.isActive === undefined,
       },
     });
@@ -178,20 +195,9 @@ export async function approveAgentApplication(formData: FormData) {
   const parsed = reviewAgentSchema.parse({
     id: formData.get("id")?.toString(),
     name: formData.get("name")?.toString(),
-    dailyLimit: formData.get("dailyLimit"),
-    monthlyLimit: formData.get("monthlyLimit"),
-    totalLimit: formData.get("totalLimit"),
     isActive: formData.get("isActive")?.toString(),
     reviewNote: optionalText(formData.get("reviewNote")),
   });
-
-  if (parsed.monthlyLimit < parsed.dailyLimit) {
-    throw new Error("月额度必须大于或等于日额度。");
-  }
-
-  if (parsed.totalLimit < parsed.monthlyLimit) {
-    throw new Error("总额度必须大于或等于月额度。");
-  }
 
   await prisma.agent.update({
     where: { id: parsed.id },
@@ -201,9 +207,9 @@ export async function approveAgentApplication(formData: FormData) {
       reviewNote: parsed.reviewNote,
       reviewedAt: new Date(),
       isActive: parsed.isActive === "on" || parsed.isActive === undefined,
-      dailyLimit: parsed.dailyLimit,
-      monthlyLimit: parsed.monthlyLimit,
-      totalLimit: parsed.totalLimit,
+      dailyLimit: 0,
+      monthlyLimit: 0,
+      totalLimit: 0,
     },
   });
 
@@ -224,9 +230,9 @@ export async function rejectAgentApplication(formData: FormData) {
       reviewNote,
       reviewedAt: new Date(),
       isActive: false,
-      dailyLimit: 1,
-      monthlyLimit: 1,
-      totalLimit: 1,
+      dailyLimit: 0,
+      monthlyLimit: 0,
+      totalLimit: 0,
     },
   });
 
@@ -255,6 +261,41 @@ export async function toggleAgentStatus(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath("/agent");
+}
+
+export async function deleteAgent(formData: FormData) {
+  await requireAdminSession();
+
+  const id = requiredString(formData.get("id"), "缺少代理 ID。");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.usageLog.deleteMany({
+      where: { agentId: id },
+    });
+
+    await tx.code.updateMany({
+      where: { usedByAgentId: id },
+      data: { usedByAgentId: null },
+    });
+
+    await tx.template.deleteMany({
+      where: { agentId: id },
+    });
+
+    await tx.agentCodeType.deleteMany({
+      where: { agentId: id },
+    });
+
+    await tx.agent.delete({
+      where: { id },
+    });
+  });
+
+  await revokeAgentSessions(id);
+
+  revalidatePath("/admin");
+  revalidatePath("/agent");
+  revalidatePath("/");
 }
 
 export async function importCodes(formData: FormData) {
@@ -328,23 +369,56 @@ export async function updateCodeStatus(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function deleteCode(formData: FormData) {
+  await requireAdminSession();
+
+  const id = requiredString(formData.get("id"), "缺少卡密 ID。");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.usageLog.deleteMany({
+      where: { codeId: id },
+    });
+
+    await tx.code.delete({
+      where: { id },
+    });
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/agent");
+}
+
 export async function grantPermission(formData: FormData) {
   await requireAdminSession();
 
-  const agentId = requiredString(formData.get("agentId"), "缺少代理 ID。");
-  const codeTypeId = requiredString(formData.get("codeTypeId"), "缺少代码类型 ID。");
+  const parsed = permissionSchema.parse({
+    agentId: formData.get("agentId"),
+    codeTypeId: formData.get("codeTypeId"),
+    dailyLimit: formData.get("dailyLimit"),
+    monthlyLimit: formData.get("monthlyLimit"),
+    totalLimit: formData.get("totalLimit"),
+  });
+
+  assertLimitOrder(parsed.dailyLimit, parsed.monthlyLimit, parsed.totalLimit);
 
   await prisma.agentCodeType.upsert({
     where: {
       agentId_codeTypeId: {
-        agentId,
-        codeTypeId,
+        agentId: parsed.agentId,
+        codeTypeId: parsed.codeTypeId,
       },
     },
-    update: {},
+    update: {
+      dailyLimit: parsed.dailyLimit,
+      monthlyLimit: parsed.monthlyLimit,
+      totalLimit: parsed.totalLimit,
+    },
     create: {
-      agentId,
-      codeTypeId,
+      agentId: parsed.agentId,
+      codeTypeId: parsed.codeTypeId,
+      dailyLimit: parsed.dailyLimit,
+      monthlyLimit: parsed.monthlyLimit,
+      totalLimit: parsed.totalLimit,
     },
   });
 
@@ -427,4 +501,14 @@ function normalizeSlug(input: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function assertLimitOrder(dailyLimit: number, monthlyLimit: number, totalLimit: number) {
+  if (monthlyLimit < dailyLimit) {
+    throw new Error("月额度必须大于或等于日额度。");
+  }
+
+  if (totalLimit < monthlyLimit) {
+    throw new Error("总额度必须大于或等于月额度。");
+  }
 }

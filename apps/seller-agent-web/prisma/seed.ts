@@ -59,9 +59,9 @@ async function main() {
       passwordHash: alphaPasswordHash,
       reviewStatus: AgentReviewStatus.APPROVED,
       reviewedAt: new Date(),
-      dailyLimit: 5,
-      monthlyLimit: 60,
-      totalLimit: 500,
+      dailyLimit: 0,
+      monthlyLimit: 0,
+      totalLimit: 0,
     },
   });
 
@@ -72,17 +72,35 @@ async function main() {
       passwordHash: betaPasswordHash,
       reviewStatus: AgentReviewStatus.APPROVED,
       reviewedAt: new Date(),
-      dailyLimit: 2,
-      monthlyLimit: 20,
-      totalLimit: 80,
+      dailyLimit: 0,
+      monthlyLimit: 0,
+      totalLimit: 0,
     },
   });
 
   await prisma.agentCodeType.createMany({
     data: [
-      { agentId: alpha.id, codeTypeId: monthlyCard.id },
-      { agentId: alpha.id, codeTypeId: premiumCard.id },
-      { agentId: beta.id, codeTypeId: monthlyCard.id },
+      {
+        agentId: alpha.id,
+        codeTypeId: monthlyCard.id,
+        dailyLimit: 5,
+        monthlyLimit: 60,
+        totalLimit: 500,
+      },
+      {
+        agentId: alpha.id,
+        codeTypeId: premiumCard.id,
+        dailyLimit: 2,
+        monthlyLimit: 20,
+        totalLimit: 100,
+      },
+      {
+        agentId: beta.id,
+        codeTypeId: monthlyCard.id,
+        dailyLimit: 2,
+        monthlyLimit: 20,
+        totalLimit: 80,
+      },
     ],
   });
 

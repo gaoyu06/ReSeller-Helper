@@ -21,13 +21,9 @@ export function AgentRegisterForm({ action }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <Card className="w-full rounded-[28px]">
+    <Card className="surface-muted w-full rounded-[28px]">
       <CardHeader className="p-6 pb-0">
-        <p className="text-[11px] tracking-[0.12em] text-sky-300/70">代理注册</p>
         <CardTitle className="mt-3 font-display text-[2rem]">提交代理申请</CardTitle>
-        <p className="mt-2 text-sm leading-6 text-zinc-400">
-          提交后将进入管理员审核。审核通过后，管理员会为你配置额度、启用状态与发码权限。
-        </p>
       </CardHeader>
 
       <CardContent className="p-6">
@@ -82,13 +78,13 @@ export function AgentRegisterForm({ action }: Props) {
           </div>
 
           {state.error ? (
-            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+            <div className="rounded-2xl border border-[#dec2c2] bg-[#f8eceb] px-4 py-3 text-sm text-[#7f4d49]">
               {state.error}
             </div>
           ) : null}
 
           {state.success ? (
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            <div className="rounded-2xl border border-[#c8d5c8] bg-[#eef4ee] px-4 py-3 text-sm text-[#4b6750]">
               {state.success}
             </div>
           ) : null}

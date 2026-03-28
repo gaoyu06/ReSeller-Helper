@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import type { LoginFormState } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
@@ -7,15 +8,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+type TabItem = {
+  href: string;
+  label: string;
+  active?: boolean;
+};
+
 type Props = {
   title: string;
   description: string;
   submitLabel: string;
-  hints?: string[];
   action: (
     state: LoginFormState,
     formData: FormData,
   ) => Promise<LoginFormState>;
+  tabs?: TabItem[];
 };
 
 const initialState: LoginFormState = {};
@@ -24,17 +31,16 @@ export function LoginForm({
   title,
   description,
   submitLabel,
-  hints,
   action,
+  tabs,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <Card className="w-full max-w-[420px] rounded-[28px]">
+    <Card className="surface-strong w-full max-w-[440px] rounded-[28px]">
       <CardHeader className="p-6 pb-0">
-        <p className="text-[11px] tracking-[0.12em] text-amber-300/70">账号登录</p>
         <CardTitle className="mt-3 font-display text-[2rem]">{title}</CardTitle>
-        <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p>
+        <p className="mt-2 text-sm leading-6 text-[#5f5347]">{description}</p>
       </CardHeader>
 
       <CardContent className="p-6">
@@ -61,7 +67,7 @@ export function LoginForm({
           </div>
 
           {state.error ? (
-            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+            <div className="rounded-2xl border border-[#dec2c2] bg-[#f8eceb] px-4 py-3 text-sm text-[#7f4d49]">
               {state.error}
             </div>
           ) : null}
@@ -71,14 +77,22 @@ export function LoginForm({
           </Button>
         </form>
 
-        {hints?.length ? (
-          <div className="mt-5 rounded-[20px] border border-white/8 bg-white/5 p-4">
-            <div className="text-[11px] tracking-[0.08em] text-zinc-500">演示账号</div>
-            <ul className="mt-2.5 grid gap-1.5 text-sm text-zinc-300">
-              {hints.map((hint) => (
-                <li key={hint}>{hint}</li>
-              ))}
-            </ul>
+        {tabs?.length ? (
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-[#e2d7ca] pt-4">
+            {tabs.map((tab) =>
+              tab.active ? (
+                <span
+                  key={tab.href}
+                  className="inline-flex items-center rounded-full border border-[#d8ccbe] bg-[#f4ede3] px-3 py-1.5 text-xs text-[#4f453a]"
+                >
+                  {tab.label}
+                </span>
+              ) : (
+                <Button key={tab.href} asChild variant="link" size="sm" className="h-auto px-0 py-0">
+                  <Link href={tab.href}>{tab.label}</Link>
+                </Button>
+              ),
+            )}
           </div>
         ) : null}
       </CardContent>

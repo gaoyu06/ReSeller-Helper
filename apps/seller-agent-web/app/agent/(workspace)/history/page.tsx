@@ -39,13 +39,13 @@ export default async function AgentHistoryPage() {
             <TableBody>
               {data.recentUsage.map((log) => (
                 <TableRow key={log.id}>
-                  <TableCell className="text-zinc-500">
+                  <TableCell className="text-[#8f8172]">
                     {format(log.createdAt, "yyyy-MM-dd HH:mm")}
                   </TableCell>
-                  <TableCell className="text-zinc-300">{log.codeType.name}</TableCell>
-                  <TableCell className="font-mono text-xs text-zinc-200">{log.code.value}</TableCell>
+                  <TableCell className="text-[#5f5347]">{log.codeType.name}</TableCell>
+                  <TableCell className="font-mono text-xs text-[#2c251f]">{log.code.value}</TableCell>
                   <TableCell>
-                    <pre className="max-w-xl whitespace-pre-wrap rounded-xl border border-white/6 bg-black/20 p-3 text-xs text-zinc-300">
+                    <pre className="max-w-xl whitespace-pre-wrap rounded-[18px] border border-[#ddd1c3] bg-[#f8f3eb] p-3 text-xs text-[#5f5347]">
                       {log.renderedContent}
                     </pre>
                   </TableCell>

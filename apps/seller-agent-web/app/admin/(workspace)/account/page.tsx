@@ -34,23 +34,23 @@ export default async function AdminAccountPage() {
         <InfoCard
           eyebrow="身份信息"
           title={account.name}
-          description="该账号负责管理卡密类型、库存、代理权限、模板与运营统计。"
+          description="该账号负责后台管理与审核操作。"
         >
           <div className="grid gap-3 md:grid-cols-2">
-            <Card className="rounded-xl border-white/8 bg-[#0d0f15] shadow-none">
-              <CardContent className="px-3.5 py-3">
-                <div className="flex items-center gap-3 text-white">
-                  <User2 className="h-4 w-4 text-amber-200" />
+            <Card className="rounded-[20px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none">
+              <CardContent className="px-4 py-3">
+                <div className="flex items-center gap-3 text-[#1f1a17]">
+                  <User2 className="h-4 w-4 text-[#8f8172]" />
                   <span className="font-medium">用户名</span>
                 </div>
-                <div className="mt-2 text-sm text-zinc-300">@{account.username}</div>
+                <div className="mt-2 text-sm text-[#5f5347]">@{account.username}</div>
               </CardContent>
             </Card>
 
-            <Card className="rounded-xl border-white/8 bg-[#0d0f15] shadow-none">
-              <CardContent className="px-3.5 py-3">
-                <div className="flex items-center gap-3 text-white">
-                  <ShieldCheck className="h-4 w-4 text-amber-200" />
+            <Card className="rounded-[20px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none">
+              <CardContent className="px-4 py-3">
+                <div className="flex items-center gap-3 text-[#1f1a17]">
+                  <ShieldCheck className="h-4 w-4 text-[#8f8172]" />
                   <span className="font-medium">账号状态</span>
                 </div>
                 <div className="mt-2">
@@ -61,23 +61,23 @@ export default async function AdminAccountPage() {
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <Card className="rounded-xl border-white/8 bg-[#0d0f15] shadow-none">
-              <CardContent className="px-3.5 py-3">
-                <div className="flex items-center gap-3 text-white">
-                  <Users2 className="h-4 w-4 text-amber-200" />
+            <Card className="rounded-[20px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none">
+              <CardContent className="px-4 py-3">
+                <div className="flex items-center gap-3 text-[#1f1a17]">
+                  <Users2 className="h-4 w-4 text-[#8f8172]" />
                   <span className="font-medium">管理代理数</span>
                 </div>
-                <div className="mt-2 font-display text-3xl text-white">{totalAgents}</div>
+                <div className="mt-2 font-display text-3xl text-[#1f1a17]">{totalAgents}</div>
               </CardContent>
             </Card>
 
-            <Card className="rounded-xl border-white/8 bg-[#0d0f15] shadow-none">
-              <CardContent className="px-3.5 py-3">
-                <div className="flex items-center gap-3 text-white">
-                  <KeyRound className="h-4 w-4 text-amber-200" />
+            <Card className="rounded-[20px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none">
+              <CardContent className="px-4 py-3">
+                <div className="flex items-center gap-3 text-[#1f1a17]">
+                  <KeyRound className="h-4 w-4 text-[#8f8172]" />
                   <span className="font-medium">会话刷新</span>
                 </div>
-                <div className="mt-2 text-sm leading-6 text-zinc-400">
+                <div className="mt-2 text-sm leading-6 text-[#766b5e]">
                   修改密码后，当前管理员会话会立刻重建。
                 </div>
               </CardContent>
@@ -101,39 +101,33 @@ export default async function AdminAccountPage() {
 
       <InfoCard
         eyebrow="快捷入口"
-        title="账号维护旁边就是核心运营页面。"
-        description="这样既能快速维护后台凭据，也能马上回到代理、日志和模板管理。"
+        title="常用页面"
+        description="账号维护和核心业务入口放在一起。"
       >
         <div className="grid gap-3 md:grid-cols-3">
-          <Card className="rounded-[20px] border-white/8 bg-[#0d0f15] shadow-none transition hover:border-amber-300/25 hover:bg-[#11141d]">
+          <Card className="rounded-[22px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none transition hover:border-[#cdbfae] hover:bg-[#f5eee4]">
             <CardContent className="px-4 py-3">
-              <div className="font-medium text-white">代理账号</div>
-              <div className="mt-1.5 text-sm leading-6 text-zinc-500">
-                创建代理、调整额度并分配权限。
-              </div>
-              <Button asChild variant="ghost" className="mt-3 px-0 text-amber-200 hover:bg-transparent hover:text-amber-100">
+              <div className="font-medium text-[#1f1a17]">代理账号</div>
+              <div className="mt-1.5 text-sm leading-6 text-[#766b5e]">创建、审核、配置额度。</div>
+              <Button asChild variant="link" className="mt-3">
                 <Link href="/admin/agents">前往页面</Link>
               </Button>
             </CardContent>
           </Card>
-          <Card className="rounded-[20px] border-white/8 bg-[#0d0f15] shadow-none transition hover:border-amber-300/25 hover:bg-[#11141d]">
+          <Card className="rounded-[22px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none transition hover:border-[#cdbfae] hover:bg-[#f5eee4]">
             <CardContent className="px-4 py-3">
-              <div className="font-medium text-white">使用日志</div>
-              <div className="mt-1.5 text-sm leading-6 text-zinc-500">
-                审计发码过程，不和账号维护混在一起。
-              </div>
-              <Button asChild variant="ghost" className="mt-3 px-0 text-amber-200 hover:bg-transparent hover:text-amber-100">
+              <div className="font-medium text-[#1f1a17]">使用日志</div>
+              <div className="mt-1.5 text-sm leading-6 text-[#766b5e]">按时间回看每次发码。</div>
+              <Button asChild variant="link" className="mt-3">
                 <Link href="/admin/usage">前往页面</Link>
               </Button>
             </CardContent>
           </Card>
-          <Card className="rounded-[20px] border-white/8 bg-[#0d0f15] shadow-none transition hover:border-amber-300/25 hover:bg-[#11141d]">
+          <Card className="rounded-[22px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none transition hover:border-[#cdbfae] hover:bg-[#f5eee4]">
             <CardContent className="px-4 py-3">
-              <div className="font-medium text-white">模板配置</div>
-              <div className="mt-1.5 text-sm leading-6 text-zinc-500">
-                维护发码文案，不影响账号生命周期管理。
-              </div>
-              <Button asChild variant="ghost" className="mt-3 px-0 text-amber-200 hover:bg-transparent hover:text-amber-100">
+              <div className="font-medium text-[#1f1a17]">模板配置</div>
+              <div className="mt-1.5 text-sm leading-6 text-[#766b5e]">按代理维护输出文案。</div>
+              <Button asChild variant="link" className="mt-3">
                 <Link href="/admin/templates">前往页面</Link>
               </Button>
             </CardContent>

@@ -5,6 +5,7 @@ import {
   CheckboxInput,
   EmptyState,
   GhostButton,
+  HiddenInput,
   PrimaryButton,
   SectionHeader,
   SelectInput,
@@ -23,26 +24,28 @@ export default async function AdminTemplatesPage() {
       <SectionHeader
         eyebrow="模板配置"
         title="按代理与类型覆盖发码文案。"
-        description="启用覆盖模板后会优先使用覆盖内容；否则系统回退到类型默认模板。"
+        description="按代理覆盖默认文案，发码时会优先渲染这里保存的模板。"
       />
 
       <div className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
         <form action={upsertTemplate} className="panel grid gap-3">
           <div className="section-label">创建或更新模板</div>
-          <SelectInput name="agentId" label="代理账号">
-            {approvedAgents.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
-              </option>
-            ))}
-          </SelectInput>
-          <SelectInput name="codeTypeId" label="卡密类型">
-            {dashboard.codeTypes.map((codeType) => (
-              <option key={codeType.id} value={codeType.id}>
-                {codeType.name}
-              </option>
-            ))}
-          </SelectInput>
+          <SelectInput
+            name="agentId"
+            label="代理账号"
+            options={approvedAgents.map((agent) => ({
+              value: agent.id,
+              label: agent.name,
+            }))}
+          />
+          <SelectInput
+            name="codeTypeId"
+            label="卡密类型"
+            options={dashboard.codeTypes.map((codeType) => ({
+              value: codeType.id,
+              label: codeType.name,
+            }))}
+          />
           <TextArea
             name="content"
             label="模板内容"
@@ -60,19 +63,19 @@ export default async function AdminTemplatesPage() {
                 <CardContent className="p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <div className="font-medium text-white">
+                      <div className="font-medium text-[#1f1a17]">
                         {template.agent.name} → {template.codeType.name}
                       </div>
-                      <div className="mt-1 text-[11px] tracking-[0.08em] text-zinc-500">
+                      <div className="mt-1 text-[11px] tracking-[0.08em] text-[#8f8172]">
                         {template.enabled ? "已启用" : "已停用"}
                       </div>
                     </div>
                     <form action={deleteTemplate}>
-                      <input type="hidden" name="id" value={template.id} />
+                      <HiddenInput name="id" value={template.id} />
                       <GhostButton>删除</GhostButton>
                     </form>
                   </div>
-                  <pre className="mt-3 overflow-auto rounded-xl border border-white/6 bg-black/20 p-3 text-sm text-zinc-200 whitespace-pre-wrap">
+                  <pre className="mt-3 overflow-auto rounded-[20px] border border-[#ddd1c3] bg-[#f8f3eb] p-3 text-sm whitespace-pre-wrap text-[#4f443a]">
                     {template.content}
                   </pre>
                 </CardContent>

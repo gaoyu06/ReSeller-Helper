@@ -12,9 +12,6 @@ export async function getAgentWorkspace(agentId: string) {
           id: true,
           name: true,
           username: true,
-          dailyLimit: true,
-          monthlyLimit: true,
-          totalLimit: true,
           isActive: true,
         },
       }),
@@ -64,17 +61,112 @@ export async function getAgentWorkspace(agentId: string) {
       }),
     ]);
 
+  const permissionIds = permissions.map((permission) => permission.codeTypeId);
+
+  const [todayUsageByType, monthUsageByType, totalUsageByType, stockByType] = await Promise.all([
+    prisma.usageLog.groupBy({
+      by: ["codeTypeId"],
+      where: {
+        agentId,
+        codeTypeId: {
+          in: permissionIds,
+        },
+        createdAt: {
+          gte: range.today.start,
+          lte: range.today.end,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.usageLog.groupBy({
+      by: ["codeTypeId"],
+      where: {
+        agentId,
+        codeTypeId: {
+          in: permissionIds,
+        },
+        createdAt: {
+          gte: range.month.start,
+          lte: range.month.end,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.usageLog.groupBy({
+      by: ["codeTypeId"],
+      where: {
+        agentId,
+        codeTypeId: {
+          in: permissionIds,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.code.groupBy({
+      by: ["codeTypeId"],
+      where: {
+        codeTypeId: {
+          in: permissionIds,
+        },
+        status: "UNUSED",
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+  ]);
+
+  const todayMap = toCountMap(todayUsageByType);
+  const monthMap = toCountMap(monthUsageByType);
+  const totalMap = toCountMap(totalUsageByType);
+  const stockMap = toCountMap(stockByType);
+
+  const permissionSummaries = permissions.map((permission) => {
+    const today = todayMap.get(permission.codeTypeId) ?? 0;
+    const month = monthMap.get(permission.codeTypeId) ?? 0;
+    const total = totalMap.get(permission.codeTypeId) ?? 0;
+    const stock = stockMap.get(permission.codeTypeId) ?? 0;
+
+    return {
+      ...permission,
+      stats: {
+        todayIssued: today,
+        monthIssued: month,
+        totalIssued: total,
+        remainingToday: Math.max(permission.dailyLimit - today, 0),
+        remainingMonth: Math.max(permission.monthlyLimit - month, 0),
+        remainingTotal: Math.max(permission.totalLimit - total, 0),
+        availableStock: stock,
+      },
+    };
+  });
+
   return {
     agent,
-    permissions,
+    permissions: permissionSummaries,
     recentUsage,
     stats: {
       todayIssued,
       monthIssued,
       totalIssued,
-      remainingToday: Math.max(agent.dailyLimit - todayIssued, 0),
-      remainingMonth: Math.max(agent.monthlyLimit - monthIssued, 0),
-      remainingTotal: Math.max(agent.totalLimit - totalIssued, 0),
+      availableTypes: permissionSummaries.length,
     },
   };
+}
+
+function toCountMap(
+  rows: Array<{
+    codeTypeId: string;
+    _count: {
+      _all: number;
+    };
+  }>,
+) {
+  return new Map(rows.map((row) => [row.codeTypeId, row._count._all]));
 }

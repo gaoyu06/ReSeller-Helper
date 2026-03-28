@@ -196,9 +196,9 @@ export async function agentRegisterAction(
       reviewStatus: AgentReviewStatus.PENDING,
       applicationNote: parsed.data.applicationNote,
       isActive: false,
-      dailyLimit: 1,
-      monthlyLimit: 1,
-      totalLimit: 1,
+      dailyLimit: 0,
+      monthlyLimit: 0,
+      totalLimit: 0,
     },
   });
 

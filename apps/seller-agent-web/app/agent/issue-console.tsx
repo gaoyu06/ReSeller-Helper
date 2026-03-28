@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormSelect } from "@/components/ui/form-select";
 
 type CodeTypeOption = {
   id: string;
   name: string;
   description: string | null;
+  dailyLimit: number;
+  monthlyLimit: number;
+  totalLimit: number;
+  todayIssued: number;
+  monthIssued: number;
+  totalIssued: number;
+  remainingToday: number;
+  remainingMonth: number;
+  remainingTotal: number;
+  availableStock: number;
 };
 
 type Props = {
@@ -32,14 +41,28 @@ type IssueResponse =
     };
 
 export function IssueConsole({ agentName, codeTypes }: Props) {
+  const [localCodeTypes, setLocalCodeTypes] = useState(codeTypes);
   const [codeTypeId, setCodeTypeId] = useState(codeTypes[0]?.id ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<IssueResponse | null>(null);
-  const hasCodeTypes = codeTypes.length > 0;
-  const options = codeTypes.map((codeType) => ({
+  const hasCodeTypes = localCodeTypes.length > 0;
+
+  const selectedType = useMemo(
+    () => localCodeTypes.find((codeType) => codeType.id === codeTypeId) ?? localCodeTypes[0],
+    [codeTypeId, localCodeTypes],
+  );
+
+  const options = localCodeTypes.map((codeType) => ({
     value: codeType.id,
     label: codeType.name,
   }));
+
+  const exhausted =
+    !selectedType ||
+    selectedType.availableStock <= 0 ||
+    selectedType.remainingToday <= 0 ||
+    selectedType.remainingMonth <= 0 ||
+    selectedType.remainingTotal <= 0;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,6 +82,24 @@ export function IssueConsole({ agentName, codeTypes }: Props) {
 
       const payload = (await response.json()) as IssueResponse;
       setResult(payload);
+      if (payload.ok) {
+        setLocalCodeTypes((current) =>
+          current.map((item) =>
+            item.id === codeTypeId
+              ? {
+                  ...item,
+                  todayIssued: item.todayIssued + 1,
+                  monthIssued: item.monthIssued + 1,
+                  totalIssued: item.totalIssued + 1,
+                  remainingToday: Math.max(item.remainingToday - 1, 0),
+                  remainingMonth: Math.max(item.remainingMonth - 1, 0),
+                  remainingTotal: Math.max(item.remainingTotal - 1, 0),
+                  availableStock: Math.max(item.availableStock - 1, 0),
+                }
+              : item,
+          ),
+        );
+      }
     } catch (error) {
       setResult({
         ok: false,
@@ -70,26 +111,18 @@ export function IssueConsole({ agentName, codeTypes }: Props) {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-      <Card className="rounded-[24px] border-white/10 bg-[#101117]/80">
-        <CardHeader className="p-5 pb-0">
-          <p className="text-[11px] tracking-[0.16em] text-amber-300/70">发码台</p>
-          <CardTitle className="mt-2.5 text-[1.7rem]">一步完成发码</CardTitle>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">
-            选择你已获授权的卡密类型。系统会根据当前代理会话自动校验权限、额度、库存与模板渲染。
-          </p>
-        </CardHeader>
+    <section className="grid gap-4">
+      <div>
+        <div className="section-label">发码台</div>
+        <h1 className="mt-2 text-[1.8rem] font-semibold text-[#1f1a17]">发码</h1>
+        <p className="mt-1 text-sm text-[#5f5347]">当前登录：{agentName}</p>
+      </div>
 
-        <CardContent className="p-5">
-          <form className="grid gap-3" onSubmit={onSubmit}>
-            <Card className="rounded-xl border-white/8 bg-black/20 shadow-none">
-              <CardContent className="px-3.5 py-3 text-sm text-zinc-300">
-                当前登录：<span className="font-semibold text-white">{agentName}</span>
-              </CardContent>
-            </Card>
-
-            <div className="grid gap-1.5 text-sm text-zinc-300">
-              <span>卡密类型</span>
+      <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
+        <div className="rounded-[24px] border border-[#d9cebf] bg-[rgba(248,244,237,0.95)] p-4">
+          <form className="grid gap-4" onSubmit={onSubmit}>
+            <div className="grid gap-2">
+              <div className="text-sm font-medium text-[#4f443a]">卡密类型</div>
               {hasCodeTypes ? (
                 <FormSelect
                   name="codeTypeId"
@@ -99,97 +132,138 @@ export function IssueConsole({ agentName, codeTypes }: Props) {
                   options={options}
                 />
               ) : (
-                <Card className="rounded-xl border-white/10 bg-black/20 shadow-none">
-                  <CardContent className="px-3.5 py-2.5 text-zinc-500">
-                    暂无可发类型
-                  </CardContent>
-                </Card>
+                <div className="rounded-[16px] border border-dashed border-[#d9cdbc] bg-[#f7f1e8] px-3 py-2.5 text-sm text-[#5f5347]">
+                  暂无可发类型，请联系管理员授权。
+                </div>
               )}
             </div>
 
-            <Button
-              type="submit"
-              disabled={submitting || !hasCodeTypes}
-              className="mt-1"
-            >
-              {submitting ? "发码中..." : hasCodeTypes ? "立即发码" : "等待授权"}
-            </Button>
-          </form>
+            {selectedType ? (
+              <div className="grid gap-2">
+                <StatLine label="库存" value={String(selectedType.availableStock)} />
+                <StatLine
+                  label="今日"
+                  value={`${selectedType.remainingToday} / ${selectedType.dailyLimit}`}
+                />
+                <StatLine
+                  label="本月"
+                  value={`${selectedType.remainingMonth} / ${selectedType.monthlyLimit}`}
+                />
+                <StatLine
+                  label="累计"
+                  value={`${selectedType.remainingTotal} / ${selectedType.totalLimit}`}
+                />
+              </div>
+            ) : null}
 
-          {!hasCodeTypes ? (
-            <Card className="mt-5 rounded-[20px] border-dashed border-white/10 bg-black/10 shadow-none">
-              <CardContent className="p-4 text-sm text-zinc-400">
-                当前账号还没有任何可用类型，请先联系管理员授予发码权限。
-              </CardContent>
-            </Card>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="submit" disabled={submitting || !hasCodeTypes || exhausted}>
+                {submitting ? "发码中..." : hasCodeTypes ? "立即发码" : "等待授权"}
+              </Button>
+              {selectedType?.description ? (
+                <div className="text-xs text-[#74685b]">{selectedType.description}</div>
+              ) : null}
+            </div>
+          </form>
+        </div>
+
+        <div className="grid gap-4">
+          {selectedType ? (
+            <div className="rounded-[24px] border border-[#ddd2c4] bg-[#fbf7f1] p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-[#1f1a17]">{selectedType.name}</div>
+                  <div className="mt-1 text-xs text-[#74685b]">
+                    已发 {selectedType.totalIssued}，当前按该类型单独计算额度。
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-2 md:grid-cols-3">
+                <QuotaCard
+                  label="今日"
+                  used={selectedType.todayIssued}
+                  remaining={selectedType.remainingToday}
+                  limit={selectedType.dailyLimit}
+                />
+                <QuotaCard
+                  label="本月"
+                  used={selectedType.monthIssued}
+                  remaining={selectedType.remainingMonth}
+                  limit={selectedType.monthlyLimit}
+                />
+                <QuotaCard
+                  label="累计"
+                  used={selectedType.totalIssued}
+                  remaining={selectedType.remainingTotal}
+                  limit={selectedType.totalLimit}
+                />
+              </div>
+            </div>
           ) : null}
 
           {result ? (
             result.ok ? (
-              <Card className="mt-5 rounded-[20px] border-emerald-400/20 bg-emerald-500/10 shadow-none">
-                <CardContent className="p-4">
-                <p className="text-[11px] tracking-[0.08em] text-emerald-300">发码成功</p>
-                <div className="mt-2.5 text-sm text-emerald-50">
-                  <p><span className="text-emerald-200/80">代理：</span>{result.data.agentName}</p>
-                  <p><span className="text-emerald-200/80">类型：</span>{result.data.codeTypeName}</p>
-                  <p><span className="text-emerald-200/80">卡密：</span>{result.data.codeValue}</p>
+              <div className="rounded-[24px] border border-[#c8d5c8] bg-[#eef4ee] p-4">
+                <div className="text-sm font-medium text-[#36533f]">发码成功</div>
+                <div className="mt-2 text-sm text-[#36533f]">
+                  {result.data.codeTypeName} / {result.data.codeValue}
                 </div>
-                <pre className="mt-3 overflow-auto rounded-xl bg-black/30 p-3 text-sm text-emerald-50 whitespace-pre-wrap">
+                <pre className="mt-3 overflow-auto rounded-[16px] border border-[#d1ddd1] bg-[#f8fbf8] p-3 text-sm whitespace-pre-wrap text-[#36533f]">
                   {result.data.renderedContent}
                 </pre>
-                </CardContent>
-              </Card>
+              </div>
             ) : (
-              <Card className="mt-5 rounded-[20px] border-rose-400/20 bg-rose-500/10 shadow-none">
-                <CardContent className="p-4 text-sm text-rose-100">
-                  {result.error}
-                </CardContent>
-              </Card>
+              <div className="rounded-[24px] border border-[#ddc0be] bg-[#f8eceb] px-4 py-3 text-sm text-[#7f4d49]">
+                {result.error}
+              </div>
             )
-          ) : null}
-        </CardContent>
-      </Card>
-
-      <aside className="space-y-3">
-        <Card className="rounded-[24px] border-white/10 bg-[#14161d]/80">
-          <CardContent className="p-5">
-            <p className="text-[11px] tracking-[0.08em] text-zinc-500">操作提示</p>
-            <CardTitle className="mt-2 text-lg">会话制发码</CardTitle>
-            <p className="mt-1.5 text-sm leading-6 text-zinc-400">
-              这里不再随请求提交用户名和密码，接口会直接读取当前代理登录会话。
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[24px] border-white/10 bg-[#14161d]/80">
-          <CardContent className="p-5">
-            <p className="text-[11px] tracking-[0.08em] text-zinc-500">当前选择</p>
-            <div className="mt-3 grid gap-3 text-sm text-zinc-300">
-              <div>
-                <div className="text-zinc-500">代理账号</div>
-                <div className="mt-1 font-medium text-white">{agentName}</div>
-                <div className="text-zinc-400">当前已登录会话</div>
-              </div>
-              <div>
-                <div className="text-zinc-500">可用类型</div>
-                <ul className="mt-2 grid gap-2">
-                  {codeTypes.map((codeType) => (
-                    <Card
-                      key={codeType.id}
-                      className="rounded-xl border-white/6 bg-black/20 shadow-none"
-                    >
-                      <CardContent className="px-3.5 py-3">
-                        <div className="font-medium text-white">{codeType.name}</div>
-                        <div className="text-xs text-zinc-500">{codeType.description || "暂无说明"}</div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </ul>
-              </div>
+          ) : (
+            <div className="rounded-[24px] border border-dashed border-[#ddd1c3] bg-[#f8f3eb] px-4 py-6 text-sm text-[#74685b]">
+              发码结果会显示在这里。
             </div>
-          </CardContent>
-        </Card>
-      </aside>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-[16px] border border-[#e3d7c9] bg-[#f8f3eb] px-3 py-2 text-sm">
+      <span className="text-[#5f5347]">{label}</span>
+      <span className="font-medium text-[#1f1a17]">{value}</span>
+    </div>
+  );
+}
+
+function QuotaCard({
+  label,
+  used,
+  remaining,
+  limit,
+}: {
+  label: string;
+  used: number;
+  remaining: number;
+  limit: number;
+}) {
+  const ratio = limit <= 0 ? 0 : Math.min(used / limit, 1);
+
+  return (
+    <div className="rounded-[18px] border border-[#e3d7c9] bg-[#f8f3eb] px-3 py-3">
+      <div className="text-[11px] tracking-[0.08em] text-[#74685b] uppercase">{label}</div>
+      <div className="mt-2 text-sm text-[#1f1a17]">剩余 {remaining}</div>
+      <div className="mt-1 text-xs text-[#74685b]">
+        已发 {used} / 总额度 {limit}
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e6dbce]">
+        <div
+          className="h-full rounded-full bg-[#5f5447]"
+          style={{ width: `${ratio * 100}%` }}
+        />
+      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return <thead className={cn("[&_tr]:border-b [&_tr]:border-white/6", className)} {...props} />;
+  return <thead className={cn("[&_tr]:border-b [&_tr]:border-[#ebe1d5]", className)} {...props} />;
 }
 
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
@@ -16,7 +16,7 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
-      className={cn("border-b border-white/6 transition-colors hover:bg-white/[0.02]", className)}
+      className={cn("border-b border-[#ebe1d5] transition-colors hover:bg-[#faf5ee]", className)}
       {...props}
     />
   );
@@ -25,18 +25,18 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
-      className={cn("h-10 px-0 pr-3 text-left align-middle text-xs font-medium tracking-[0.08em] text-zinc-500", className)}
+      className={cn("h-9 px-0 pr-3 text-left align-middle text-[11px] font-medium tracking-[0.08em] text-[#6b5f53]", className)}
       {...props}
     />
   );
 }
 
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
-  return <td className={cn("py-2.5 pr-3 align-middle", className)} {...props} />;
+  return <td className={cn("py-2 pr-3 align-middle", className)} {...props} />;
 }
 
 function TableCaption({ className, ...props }: React.ComponentProps<"caption">) {
-  return <caption className={cn("mt-4 text-sm text-zinc-500", className)} {...props} />;
+  return <caption className={cn("mt-4 text-sm text-[#6b5f53]", className)} {...props} />;
 }
 
 export {

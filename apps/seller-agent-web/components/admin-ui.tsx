@@ -17,15 +17,15 @@ export function StatTile({
   icon: React.ReactNode;
 }) {
   return (
-    <Card className="rounded-[22px]">
+    <Card className="surface-strong rounded-[24px]">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] tracking-[0.08em] text-zinc-500">
+          <span className="text-[11px] tracking-[0.08em] text-[#6b5f53]">
             {label}
           </span>
-          <div className="text-amber-200">{icon}</div>
+          <div className="text-[#6b5f53]">{icon}</div>
         </div>
-        <div className="mt-3 font-display text-4xl text-white">{value}</div>
+        <div className="mt-3 font-display text-4xl text-[#1f1a17]">{value}</div>
       </CardContent>
     </Card>
   );
@@ -42,9 +42,9 @@ export function SectionHeader({
 }) {
   return (
     <div>
-      <p className="text-[11px] tracking-[0.08em] text-zinc-500">{eyebrow}</p>
-      <h1 className="mt-2 text-[1.7rem] font-semibold text-white">{title}</h1>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+      <p className="text-[11px] tracking-[0.12em] text-[#6b5f53] uppercase">{eyebrow}</p>
+      <h1 className="mt-2 text-[1.8rem] font-semibold text-[#1f1a17]">{title}</h1>
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f5347]">
         {description}
       </p>
     </div>
@@ -76,7 +76,7 @@ export function TextInput({
         defaultValue={defaultValue}
         placeholder={placeholder}
       />
-      {help ? <span className="text-xs text-zinc-500">{help}</span> : null}
+      {help ? <span className="text-xs text-[#74685b]">{help}</span> : null}
     </div>
   );
 }
@@ -128,16 +128,14 @@ export function TextArea({
 export function SelectInput({
   label,
   name,
-  children,
+  options,
   defaultValue,
 }: {
   label: string;
   name: string;
-  children: React.ReactNode;
+  options: Array<{ label: string; value: string }>;
   defaultValue?: string;
 }) {
-  const options = flattenOptions(children);
-
   return (
     <div className="grid gap-1.5">
       <Label htmlFor={name}>{label}</Label>
@@ -151,6 +149,16 @@ export function SelectInput({
   );
 }
 
+export function HiddenInput({
+  name,
+  value,
+}: {
+  name: string;
+  value: string;
+}) {
+  return <Input type="hidden" name={name} value={value} readOnly className="hidden" />;
+}
+
 export function CheckboxInput({
   label,
   name,
@@ -161,7 +169,7 @@ export function CheckboxInput({
   defaultChecked?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 text-sm text-zinc-300">
+    <div className="flex items-center gap-3 text-sm text-[#65594d]">
       <Checkbox id={name} name={name} defaultChecked={defaultChecked} />
       <span>{label}</span>
     </div>
@@ -174,7 +182,7 @@ export function PrimaryButton({ children }: { children: React.ReactNode }) {
 
 export function GhostButton({ children }: { children: React.ReactNode }) {
   return (
-    <Button type="submit" variant="outline" size="sm">
+    <Button type="submit" variant="ghost" size="sm">
       {children}
     </Button>
   );
@@ -204,10 +212,10 @@ export function InfoCard({
   return (
     <Card className="panel">
       <CardHeader className="p-0">
-        <p className="text-[11px] tracking-[0.08em] text-zinc-500">{eyebrow}</p>
+        <p className="text-[11px] tracking-[0.12em] text-[#6b5f53] uppercase">{eyebrow}</p>
         <CardTitle className="mt-2.5 text-xl">{title}</CardTitle>
         {description ? (
-          <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-[#5f5347]">{description}</p>
         ) : null}
       </CardHeader>
       {children ? <CardContent className="mt-4 p-0">{children}</CardContent> : null}
@@ -223,9 +231,9 @@ export function EmptyState({
   description: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-dashed border-white/10 bg-black/10 px-5 py-6">
-      <div className="text-sm font-medium text-white">{title}</div>
-      <div className="mt-1.5 text-sm leading-6 text-zinc-500">{description}</div>
+    <div className="rounded-[24px] border border-dashed border-[#d8ccbd] bg-[#f6efe6] px-5 py-6">
+      <div className="text-sm font-medium text-[#241d18]">{title}</div>
+      <div className="mt-1.5 text-sm leading-6 text-[#5f5347]">{description}</div>
     </div>
   );
 }
@@ -234,45 +242,30 @@ export function ProgressBar({
   label,
   value,
   max,
-  tone = "amber",
+  tone = "default",
 }: {
   label: string;
   value: number;
   max: number;
-  tone?: "amber" | "sky";
+  tone?: "default" | "muted";
 }) {
   const ratio = max <= 0 ? 0 : Math.min(value / max, 1);
-  const colorClass =
-    tone === "sky" ? "bg-sky-300 shadow-sky-300/30" : "bg-amber-300 shadow-amber-300/30";
+  const colorClass = tone === "muted" ? "bg-[#9aa59d]" : "bg-[#61564a]";
 
   return (
     <div className="grid gap-2">
       <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="text-zinc-300">{label}</span>
-        <span className="text-zinc-500">
+        <span className="text-[#61564a]">{label}</span>
+        <span className="text-[#6b5f53]">
           {value} / {max}
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/8">
+      <div className="h-2 overflow-hidden rounded-full bg-[#e7ddd0]">
         <div
-          className={`h-full rounded-full ${colorClass} shadow-[0_0_28px] transition-all`}
+          className={`h-full rounded-full ${colorClass} transition-all`}
           style={{ width: `${ratio * 100}%` }}
         />
       </div>
     </div>
   );
-}
-
-function flattenOptions(children: React.ReactNode) {
-  return (Array.isArray(children) ? children : [children]).flatMap((child) => {
-    if (!child || typeof child !== "object" || !("props" in child)) {
-      return [];
-    }
-
-    const props = child.props as { children?: React.ReactNode; value?: string };
-    const label =
-      typeof props.children === "string" ? props.children : String(props.children ?? "");
-
-    return props.value ? [{ value: props.value, label }] : [];
-  });
 }

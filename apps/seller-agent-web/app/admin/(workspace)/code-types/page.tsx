@@ -1,105 +1,83 @@
-import { toggleCodeTypeStatus, upsertCodeType } from "@/app/admin/actions";
+import { deleteCodeType, toggleCodeTypeStatus } from "@/app/admin/actions";
 import { getDashboardData } from "@/lib/dashboard-data";
-import {
-  Badge,
-  CheckboxInput,
-  GhostButton,
-  PrimaryButton,
-  SectionHeader,
-  TextArea,
-  TextInput,
-} from "@/components/admin-ui";
+import { CodeTypeDialog } from "@/components/admin-dialog-forms";
+import { Badge, GhostButton, HiddenInput, SectionHeader } from "@/components/admin-ui";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default async function AdminCodeTypesPage() {
   const dashboard = await getDashboardData();
 
   return (
-    <main className="grid gap-5 py-1">
+    <main className="grid gap-4 py-1">
       <SectionHeader
         eyebrow="卡密类型"
-        title="定义发码类型与默认模板。"
-        description="每个类型拥有自己的库存与默认文案，后续还可以按代理继续覆盖。"
+        title="卡密类型"
+        description="页面只保留列表，新增和修改都通过弹窗完成。"
       />
 
-      <div className="grid gap-4 lg:grid-cols-[0.86fr_1.14fr]">
-        <form action={upsertCodeType} className="panel grid gap-3">
-          <div className="section-label">新建类型</div>
-          <TextInput name="name" label="名称" placeholder="月卡" />
-          <TextInput
-            name="slug"
-            label="标识"
-            placeholder="monthly-card"
-            help="留空时会根据名称自动生成。"
-          />
-          <TextInput
-            name="description"
-            label="说明"
-            placeholder="标准月卡兑换码"
-          />
-          <TextArea
-            name="defaultTemplate"
-            label="默认模板"
-            placeholder="兑换码：{code}"
-            rows={5}
-          />
-          <CheckboxInput name="isActive" label="创建后立即启用" defaultChecked />
-          <PrimaryButton>创建类型</PrimaryButton>
-        </form>
+      <div className="flex justify-end">
+        <CodeTypeDialog triggerLabel="新建类型" />
+      </div>
 
-        <div className="grid gap-3">
-          {dashboard.codeTypes.map((codeType) => (
-            <Card key={codeType.id} className="panel p-0">
-              <CardContent className="grid gap-3 p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">{codeType.name}</h3>
-                    <p className="mt-1 text-sm text-zinc-500">标识：{codeType.slug}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge>{codeType.isActive ? "启用" : "停用"}</Badge>
-                    <Badge tone="muted">{codeType._count.codes} 个卡密</Badge>
-                  </div>
+      <div className="grid gap-3">
+        {dashboard.codeTypes.map((codeType) => (
+          <Card key={codeType.id} className="panel p-0">
+            <CardContent className="grid gap-3 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="text-base font-semibold text-[#1f1a17]">{codeType.name}</div>
+                  <div className="mt-1 text-sm text-[#8f8172]">标识：{codeType.slug}</div>
+                  {codeType.description ? (
+                    <div className="mt-1 text-sm text-[#5f5347]">{codeType.description}</div>
+                  ) : null}
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge>{codeType.isActive ? "启用" : "停用"}</Badge>
+                  <Badge tone="muted">{codeType._count.codes} 个卡密</Badge>
+                  <Badge tone="muted">{codeType._count.usageLogs} 条记录</Badge>
+                </div>
+              </div>
 
-                <form action={upsertCodeType} className="grid gap-3">
-                  <input type="hidden" name="id" value={codeType.id} />
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <TextInput name="name" label="名称" defaultValue={codeType.name} />
-                    <TextInput name="slug" label="标识" defaultValue={codeType.slug} />
-                  </div>
-                  <TextInput
-                    name="description"
-                    label="说明"
-                    defaultValue={codeType.description ?? ""}
-                  />
-                  <TextArea
-                    name="defaultTemplate"
-                    label="默认模板"
-                    rows={4}
-                    defaultValue={codeType.defaultTemplate}
-                  />
-                  <div className="flex flex-wrap items-center gap-3">
-                    <CheckboxInput
-                      name="isActive"
-                      label="启用状态"
-                      defaultChecked={codeType.isActive}
-                    />
-                    <PrimaryButton>保存类型</PrimaryButton>
-                  </div>
-                </form>
+              <div className="rounded-[18px] border border-[#e3d7c9] bg-[#f8f3eb] px-3 py-3 text-sm text-[#5f5347]">
+                <div className="text-[11px] tracking-[0.08em] text-[#8f8172] uppercase">默认模板</div>
+                <pre className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#1f1a17]">
+                  {codeType.defaultTemplate}
+                </pre>
+              </div>
 
-                <form action={toggleCodeTypeStatus} className="flex">
-                  <input type="hidden" name="id" value={codeType.id} />
-                  <input type="hidden" name="current" value={String(codeType.isActive)} />
-                  <GhostButton>
-                    {codeType.isActive ? "暂停类型" : "重新启用"}
-                  </GhostButton>
+              <div className="flex flex-wrap gap-2">
+                <CodeTypeDialog
+                  triggerLabel="编辑"
+                  triggerVariant="outline"
+                  initialValue={{
+                    id: codeType.id,
+                    name: codeType.name,
+                    slug: codeType.slug,
+                    description: codeType.description,
+                    defaultTemplate: codeType.defaultTemplate,
+                    isActive: codeType.isActive,
+                  }}
+                />
+                <form action={toggleCodeTypeStatus}>
+                  <HiddenInput name="id" value={codeType.id} />
+                  <HiddenInput name="current" value={String(codeType.isActive)} />
+                  <GhostButton>{codeType.isActive ? "暂停类型" : "重新启用"}</GhostButton>
                 </form>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <form action={deleteCodeType}>
+                  <HiddenInput name="id" value={codeType.id} />
+                  <Button
+                    type="submit"
+                    variant="danger"
+                    size="sm"
+                  >
+                    删除类型
+                  </Button>
+                </form>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </main>
   );

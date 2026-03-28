@@ -26,8 +26,10 @@ export async function issueCode(input: IssueInput): Promise<IssueCodeResult> {
       return await prisma.$transaction(async (tx) => {
         const agent = await tx.agent.findUnique({
           where: { id: input.agentId },
-          include: {
-            permissions: true,
+          select: {
+            id: true,
+            name: true,
+            isActive: true,
           },
         });
 
@@ -43,26 +45,31 @@ export async function issueCode(input: IssueInput): Promise<IssueCodeResult> {
           throw new Error("所选卡密类型当前不可用。");
         }
 
-        const allowed = agent.permissions.some(
-          (permission) => permission.codeTypeId === input.codeTypeId,
-        );
+        const permission = await tx.agentCodeType.findUnique({
+          where: {
+            agentId_codeTypeId: {
+              agentId: agent.id,
+              codeTypeId: codeType.id,
+            },
+          },
+        });
 
-        if (!allowed) {
+        if (!permission) {
           throw new Error("当前代理没有该类型的发码权限。");
         }
 
-        const usageStats = await getAgentUsageStats(tx, agent.id);
+        const usageStats = await getPermissionUsageStats(tx, agent.id, codeType.id);
 
-        if (usageStats.today >= agent.dailyLimit) {
-          throw new Error("今日发码额度已用尽。");
+        if (usageStats.today >= permission.dailyLimit) {
+          throw new Error(`${codeType.name} 今日额度已用尽。`);
         }
 
-        if (usageStats.month >= agent.monthlyLimit) {
-          throw new Error("本月发码额度已用尽。");
+        if (usageStats.month >= permission.monthlyLimit) {
+          throw new Error(`${codeType.name} 本月额度已用尽。`);
         }
 
-        if (usageStats.total >= agent.totalLimit) {
-          throw new Error("总发码额度已用尽。");
+        if (usageStats.total >= permission.totalLimit) {
+          throw new Error(`${codeType.name} 总额度已用尽。`);
         }
 
         const candidate = await tx.code.findFirst({
@@ -139,9 +146,10 @@ export async function issueCode(input: IssueInput): Promise<IssueCodeResult> {
   throw new Error("多次重试后仍未成功分配卡密。");
 }
 
-async function getAgentUsageStats(
+async function getPermissionUsageStats(
   tx: Prisma.TransactionClient,
   agentId: string,
+  codeTypeId: string,
 ) {
   const range = getStatsRange();
 
@@ -149,6 +157,7 @@ async function getAgentUsageStats(
     tx.usageLog.count({
       where: {
         agentId,
+        codeTypeId,
         createdAt: {
           gte: range.today.start,
           lte: range.today.end,
@@ -158,6 +167,7 @@ async function getAgentUsageStats(
     tx.usageLog.count({
       where: {
         agentId,
+        codeTypeId,
         createdAt: {
           gte: range.month.start,
           lte: range.month.end,
@@ -167,6 +177,7 @@ async function getAgentUsageStats(
     tx.usageLog.count({
       where: {
         agentId,
+        codeTypeId,
       },
     }),
   ]);
@@ -181,4 +192,3 @@ function renderTemplate(template: string, code: string) {
 function isRetryableRace(error: unknown) {
   return error instanceof Error && error.message.includes("冲突");
 }
-
