@@ -12,6 +12,8 @@ const codeTypeSchema = z.object({
   slug: z.string().min(2),
   description: z.string().optional(),
   defaultTemplate: z.string().min(3),
+  dailySaleLimit: z.coerce.number().int().min(0),
+  monthlySaleLimit: z.coerce.number().int().min(0),
   isActive: z.string().optional(),
 });
 
@@ -47,8 +49,12 @@ export async function upsertCodeType(formData: FormData) {
     slug: normalizeSlug(formData.get("slug")?.toString() || formData.get("name")?.toString() || ""),
     description: optionalText(formData.get("description")),
     defaultTemplate: formData.get("defaultTemplate")?.toString(),
+    dailySaleLimit: formData.get("dailySaleLimit"),
+    monthlySaleLimit: formData.get("monthlySaleLimit"),
     isActive: formData.get("isActive")?.toString(),
   });
+
+  assertSaleLimitOrder(parsed.dailySaleLimit, parsed.monthlySaleLimit);
 
   if (parsed.id) {
     await prisma.codeType.update({
@@ -58,6 +64,8 @@ export async function upsertCodeType(formData: FormData) {
         slug: parsed.slug,
         description: parsed.description,
         defaultTemplate: parsed.defaultTemplate,
+        dailySaleLimit: parsed.dailySaleLimit,
+        monthlySaleLimit: parsed.monthlySaleLimit,
         isActive: parsed.isActive === "on",
       },
     });
@@ -68,6 +76,8 @@ export async function upsertCodeType(formData: FormData) {
         slug: parsed.slug,
         description: parsed.description,
         defaultTemplate: parsed.defaultTemplate,
+        dailySaleLimit: parsed.dailySaleLimit,
+        monthlySaleLimit: parsed.monthlySaleLimit,
         isActive: parsed.isActive === "on" || parsed.isActive === undefined,
       },
     });
@@ -590,5 +600,11 @@ function assertLimitOrder(dailyLimit: number, monthlyLimit: number, totalLimit: 
 
   if (totalLimit > 0 && monthlyLimit > 0 && totalLimit < monthlyLimit) {
     throw new Error("总额度必须大于或等于月额度。");
+  }
+}
+
+function assertSaleLimitOrder(dailySaleLimit: number, monthlySaleLimit: number) {
+  if (monthlySaleLimit > 0 && dailySaleLimit > 0 && monthlySaleLimit < dailySaleLimit) {
+    throw new Error("月售卖限制必须大于或等于日售卖限制。");
   }
 }

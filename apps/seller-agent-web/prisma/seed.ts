@@ -23,6 +23,8 @@ async function main() {
       slug: "monthly-card",
       description: "Standard monthly subscription code.",
       defaultTemplate: "【Monthly Card】\nCode: {code}\nPlease redeem within 24 hours.",
+      dailySaleLimit: 20,
+      monthlySaleLimit: 300,
       codes: {
         createMany: {
           data: [
@@ -41,6 +43,8 @@ async function main() {
       slug: "premium-pass",
       description: "Premium code for high-tier agents.",
       defaultTemplate: "Premium Access\nActivation code: {code}",
+      dailySaleLimit: 5,
+      monthlySaleLimit: 60,
       codes: {
         createMany: {
           data: [

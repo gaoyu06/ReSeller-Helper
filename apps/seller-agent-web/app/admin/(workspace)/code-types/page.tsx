@@ -35,6 +35,12 @@ export default async function AdminCodeTypesPage() {
                   <Badge>{codeType.isActive ? "启用" : "停用"}</Badge>
                   <Badge tone="muted">{codeType._count.codes} 个卡密</Badge>
                   <Badge tone="muted">{codeType._count.usageLogs} 条记录</Badge>
+                  <Badge tone="muted">
+                    日售 {codeType.dailySaleLimit > 0 ? codeType.dailySaleLimit : "不限"}
+                  </Badge>
+                  <Badge tone="muted">
+                    月售 {codeType.monthlySaleLimit > 0 ? codeType.monthlySaleLimit : "不限"}
+                  </Badge>
                 </div>
               </div>
 
@@ -55,6 +61,8 @@ export default async function AdminCodeTypesPage() {
                     slug: codeType.slug,
                     description: codeType.description,
                     defaultTemplate: codeType.defaultTemplate,
+                    dailySaleLimit: codeType.dailySaleLimit,
+                    monthlySaleLimit: codeType.monthlySaleLimit,
                     isActive: codeType.isActive,
                   }}
                 />

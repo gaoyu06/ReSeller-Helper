@@ -60,6 +60,8 @@ type EditableCodeType = {
   slug: string;
   description: string | null;
   defaultTemplate: string;
+  dailySaleLimit: number;
+  monthlySaleLimit: number;
   isActive: boolean;
 };
 
@@ -285,6 +287,22 @@ export function CodeTypeDialog({
             defaultValue={initialValue?.defaultTemplate}
             placeholder="兑换码：{code}"
           />
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField
+              label="日售卖限制"
+              name="dailySaleLimit"
+              type="number"
+              defaultValue={formatLimitValue(initialValue?.dailySaleLimit)}
+              placeholder="不限"
+            />
+            <FormField
+              label="月售卖限制"
+              name="monthlySaleLimit"
+              type="number"
+              defaultValue={formatLimitValue(initialValue?.monthlySaleLimit)}
+              placeholder="不限"
+            />
+          </div>
           <CheckboxField
             name="isActive"
             label="启用状态"

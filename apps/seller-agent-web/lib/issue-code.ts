@@ -72,6 +72,16 @@ export async function issueCode(input: IssueInput): Promise<IssueCodeResult> {
           throw new Error(`${codeType.name} 总额度已用尽。`);
         }
 
+        const saleStats = await getCodeTypeSaleStats(tx, codeType.id);
+
+        if (isLimitReached(saleStats.today, codeType.dailySaleLimit)) {
+          throw new Error(`${codeType.name} 今日可售数量已达上限。`);
+        }
+
+        if (isLimitReached(saleStats.month, codeType.monthlySaleLimit)) {
+          throw new Error(`${codeType.name} 本月可售数量已达上限。`);
+        }
+
         const candidate = await tx.code.findFirst({
           where: {
             codeTypeId: input.codeTypeId,
@@ -183,6 +193,36 @@ async function getPermissionUsageStats(
   ]);
 
   return { today, month, total };
+}
+
+async function getCodeTypeSaleStats(
+  tx: Prisma.TransactionClient,
+  codeTypeId: string,
+) {
+  const range = getStatsRange();
+
+  const [today, month] = await Promise.all([
+    tx.usageLog.count({
+      where: {
+        codeTypeId,
+        createdAt: {
+          gte: range.today.start,
+          lte: range.today.end,
+        },
+      },
+    }),
+    tx.usageLog.count({
+      where: {
+        codeTypeId,
+        createdAt: {
+          gte: range.month.start,
+          lte: range.month.end,
+        },
+      },
+    }),
+  ]);
+
+  return { today, month };
 }
 
 function renderTemplate(template: string, code: string) {

@@ -185,12 +185,9 @@ export function AgentHomeConsole({ permissions, history }: Props) {
             isLimitExhausted(card.remainingTotal);
 
           return (
-            <button
+            <div
               key={card.id}
-              type="button"
-              onClick={() => issueFromCard(card)}
-              disabled={disabled || isPending}
-              className="grid gap-3 rounded-[22px] border border-[#d9cebf] bg-[rgba(248,244,237,0.96)] p-3.5 text-left transition hover:border-[#cabba9] hover:bg-[#fcf8f2] disabled:cursor-not-allowed disabled:opacity-55"
+              className="grid gap-3 rounded-[22px] border border-[#d9cebf] bg-[rgba(248,244,237,0.96)] p-3.5 text-left"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -204,17 +201,21 @@ export function AgentHomeConsole({ permissions, history }: Props) {
                 </div>
               </div>
 
-              <div className="grid gap-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 <MetricStrip label="今日" remaining={card.remainingToday} limit={card.dailyLimit} />
                 <MetricStrip label="本月" remaining={card.remainingMonth} limit={card.monthlyLimit} />
                 <MetricStrip label="累计" remaining={card.remainingTotal} limit={card.totalLimit} />
               </div>
 
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[#74685b]">{disabled ? getDisabledReason(card) : "点击即发码"}</span>
-                <span className="font-medium text-[#1f1a17]">{isPending ? "处理中" : "发码"}</span>
-              </div>
-            </button>
+              <Button
+                type="button"
+                onClick={() => issueFromCard(card)}
+                disabled={disabled || isPending}
+                className="h-10 w-full rounded-[16px]"
+              >
+                {disabled ? getDisabledReason(card) : isPending ? "发码中..." : "立即发码"}
+              </Button>
+            </div>
           );
         })}
       </section>
@@ -321,11 +322,11 @@ function MetricStrip({
   limit: number;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[14px] border border-[#e3d7c9] bg-[#f8f3eb] px-3 py-1.75 text-sm">
-      <span className="text-[#5f5347]">{label}</span>
-      <span className="font-medium text-[#1f1a17]">
+    <div className="rounded-[14px] border border-[#e3d7c9] bg-[#f8f3eb] px-2.5 py-2 text-center">
+      <div className="text-[11px] text-[#74685b]">{label}</div>
+      <div className="mt-1 text-sm font-medium text-[#1f1a17]">
         {formatLimitPair(remaining, limit)}
-      </span>
+      </div>
     </div>
   );
 }
