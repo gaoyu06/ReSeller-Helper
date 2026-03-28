@@ -8,14 +8,14 @@
 
 ```env
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-DATABASE_URL_UNPOOLED="postgresql://user:password@host/database?sslmode=require"
+POSTGRES_URL_NON_POOLING="postgresql://user:password@host/database?sslmode=require"
 AUTH_SECRET="replace-with-a-long-random-secret"
 ```
 
 如果使用 Neon：
 
 - `DATABASE_URL` 使用 pooled 连接
-- `DATABASE_URL_UNPOOLED` 使用非 pooler 连接
+- `POSTGRES_URL_NON_POOLING` 使用非 pooler 连接
 
 ## 本地开发
 
@@ -32,7 +32,7 @@ pnpm dev
 需要在 Vercel 项目中配置：
 
 - `DATABASE_URL`
-- `DATABASE_URL_UNPOOLED`
+- `POSTGRES_URL_NON_POOLING`
 - `AUTH_SECRET`
 
 首次部署前建议先在本地完成：
