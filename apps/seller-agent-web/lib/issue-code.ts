@@ -60,15 +60,15 @@ export async function issueCode(input: IssueInput): Promise<IssueCodeResult> {
 
         const usageStats = await getPermissionUsageStats(tx, agent.id, codeType.id);
 
-        if (usageStats.today >= permission.dailyLimit) {
+        if (isLimitReached(usageStats.today, permission.dailyLimit)) {
           throw new Error(`${codeType.name} 今日额度已用尽。`);
         }
 
-        if (usageStats.month >= permission.monthlyLimit) {
+        if (isLimitReached(usageStats.month, permission.monthlyLimit)) {
           throw new Error(`${codeType.name} 本月额度已用尽。`);
         }
 
-        if (usageStats.total >= permission.totalLimit) {
+        if (isLimitReached(usageStats.total, permission.totalLimit)) {
           throw new Error(`${codeType.name} 总额度已用尽。`);
         }
 
@@ -191,4 +191,8 @@ function renderTemplate(template: string, code: string) {
 
 function isRetryableRace(error: unknown) {
   return error instanceof Error && error.message.includes("冲突");
+}
+
+function isLimitReached(used: number, limit: number) {
+  return limit > 0 && used >= limit;
 }

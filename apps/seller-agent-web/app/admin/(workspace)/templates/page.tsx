@@ -23,8 +23,7 @@ export default async function AdminTemplatesPage() {
     <main className="grid gap-5 py-1">
       <SectionHeader
         eyebrow="模板配置"
-        title="按代理与类型覆盖发码文案。"
-        description="按代理覆盖默认文案，发码时会优先渲染这里保存的模板。"
+        title="模板配置"
       />
 
       <div className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
@@ -84,7 +83,6 @@ export default async function AdminTemplatesPage() {
           ) : (
             <EmptyState
               title="还没有覆盖模板"
-              description="先创建一个按代理生效的模板，用来覆盖卡密类型的默认文案。"
             />
           )}
         </div>

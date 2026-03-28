@@ -18,11 +18,7 @@ export default async function AgentHistoryPage() {
 
   return (
     <main className="grid gap-5 py-1">
-      <SectionHeader
-        eyebrow="发码记录"
-        title="查看最近发出的卡密。"
-        description="这份记录会参与额度计算，也是排查问题时最直接的依据。"
-      />
+      <SectionHeader eyebrow="发码记录" title="发码记录" />
 
       <Card className="panel overflow-x-auto p-0">
         <CardContent className="p-5">
@@ -54,10 +50,7 @@ export default async function AgentHistoryPage() {
             </TableBody>
           </Table>
         ) : (
-          <EmptyState
-            title="还没有发码记录"
-            description="完成第一次成功发码后，这里会展示你的最近记录。"
-          />
+          <EmptyState title="还没有发码记录" />
         )}
         </CardContent>
       </Card>

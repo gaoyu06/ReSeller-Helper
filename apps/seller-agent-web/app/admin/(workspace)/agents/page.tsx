@@ -30,7 +30,6 @@ export default async function AdminAgentsPage() {
       <SectionHeader
         eyebrow="代理账号"
         title="代理管理"
-        description="页面保留代理列表，创建、编辑和审核全部通过弹窗处理。"
       />
 
       <div className="flex justify-end">
@@ -62,13 +61,13 @@ export default async function AdminAgentsPage() {
 
               {agent.applicationNote ? (
                 <div className="rounded-[16px] border border-[#e3d7c9] bg-[#f7f1e8] px-3 py-2 text-xs leading-5 text-[#5f5347]">
-                  申请说明：{agent.applicationNote}
+                  {agent.applicationNote}
                 </div>
               ) : null}
 
               {agent.reviewNote ? (
                 <div className="rounded-[16px] border border-[#e3d7c9] bg-[#f7f1e8] px-3 py-2 text-xs leading-5 text-[#5f5347]">
-                  审核备注：{agent.reviewNote}
+                  {agent.reviewNote}
                 </div>
               ) : null}
 

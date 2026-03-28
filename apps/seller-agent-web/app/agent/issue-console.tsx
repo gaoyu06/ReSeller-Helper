@@ -14,14 +14,13 @@ type CodeTypeOption = {
   todayIssued: number;
   monthIssued: number;
   totalIssued: number;
-  remainingToday: number;
-  remainingMonth: number;
-  remainingTotal: number;
+  remainingToday: number | null;
+  remainingMonth: number | null;
+  remainingTotal: number | null;
   availableStock: number;
 };
 
 type Props = {
-  agentName: string;
   codeTypes: CodeTypeOption[];
 };
 
@@ -40,7 +39,7 @@ type IssueResponse =
       error: string;
     };
 
-export function IssueConsole({ agentName, codeTypes }: Props) {
+export function IssueConsole({ codeTypes }: Props) {
   const [localCodeTypes, setLocalCodeTypes] = useState(codeTypes);
   const [codeTypeId, setCodeTypeId] = useState(codeTypes[0]?.id ?? "");
   const [submitting, setSubmitting] = useState(false);
@@ -60,9 +59,9 @@ export function IssueConsole({ agentName, codeTypes }: Props) {
   const exhausted =
     !selectedType ||
     selectedType.availableStock <= 0 ||
-    selectedType.remainingToday <= 0 ||
-    selectedType.remainingMonth <= 0 ||
-    selectedType.remainingTotal <= 0;
+    isLimitExhausted(selectedType.remainingToday) ||
+    isLimitExhausted(selectedType.remainingMonth) ||
+    isLimitExhausted(selectedType.remainingTotal);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,9 +90,9 @@ export function IssueConsole({ agentName, codeTypes }: Props) {
                   todayIssued: item.todayIssued + 1,
                   monthIssued: item.monthIssued + 1,
                   totalIssued: item.totalIssued + 1,
-                  remainingToday: Math.max(item.remainingToday - 1, 0),
-                  remainingMonth: Math.max(item.remainingMonth - 1, 0),
-                  remainingTotal: Math.max(item.remainingTotal - 1, 0),
+                  remainingToday: decrementRemaining(item.remainingToday),
+                  remainingMonth: decrementRemaining(item.remainingMonth),
+                  remainingTotal: decrementRemaining(item.remainingTotal),
                   availableStock: Math.max(item.availableStock - 1, 0),
                 }
               : item,
@@ -115,7 +114,6 @@ export function IssueConsole({ agentName, codeTypes }: Props) {
       <div>
         <div className="section-label">发码台</div>
         <h1 className="mt-2 text-[1.8rem] font-semibold text-[#1f1a17]">发码</h1>
-        <p className="mt-1 text-sm text-[#5f5347]">当前登录：{agentName}</p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[360px_1fr]">
@@ -143,15 +141,15 @@ export function IssueConsole({ agentName, codeTypes }: Props) {
                 <StatLine label="库存" value={String(selectedType.availableStock)} />
                 <StatLine
                   label="今日"
-                  value={`${selectedType.remainingToday} / ${selectedType.dailyLimit}`}
+                  value={formatLimitPair(selectedType.remainingToday, selectedType.dailyLimit)}
                 />
                 <StatLine
                   label="本月"
-                  value={`${selectedType.remainingMonth} / ${selectedType.monthlyLimit}`}
+                  value={formatLimitPair(selectedType.remainingMonth, selectedType.monthlyLimit)}
                 />
                 <StatLine
                   label="累计"
-                  value={`${selectedType.remainingTotal} / ${selectedType.totalLimit}`}
+                  value={formatLimitPair(selectedType.remainingTotal, selectedType.totalLimit)}
                 />
               </div>
             ) : null}
@@ -220,7 +218,7 @@ export function IssueConsole({ agentName, codeTypes }: Props) {
             )
           ) : (
             <div className="rounded-[24px] border border-dashed border-[#ddd1c3] bg-[#f8f3eb] px-4 py-6 text-sm text-[#74685b]">
-              发码结果会显示在这里。
+              暂无结果
             </div>
           )}
         </div>
@@ -246,7 +244,7 @@ function QuotaCard({
 }: {
   label: string;
   used: number;
-  remaining: number;
+  remaining: number | null;
   limit: number;
 }) {
   const ratio = limit <= 0 ? 0 : Math.min(used / limit, 1);
@@ -254,9 +252,9 @@ function QuotaCard({
   return (
     <div className="rounded-[18px] border border-[#e3d7c9] bg-[#f8f3eb] px-3 py-3">
       <div className="text-[11px] tracking-[0.08em] text-[#74685b] uppercase">{label}</div>
-      <div className="mt-2 text-sm text-[#1f1a17]">剩余 {remaining}</div>
+      <div className="mt-2 text-sm text-[#1f1a17]">剩余 {remaining ?? "不限"}</div>
       <div className="mt-1 text-xs text-[#74685b]">
-        已发 {used} / 总额度 {limit}
+        已发 {used} / 总额度 {limit > 0 ? limit : "不限"}
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e6dbce]">
         <div
@@ -266,4 +264,24 @@ function QuotaCard({
       </div>
     </div>
   );
+}
+
+function isLimitExhausted(remaining: number | null) {
+  return remaining !== null && remaining <= 0;
+}
+
+function decrementRemaining(remaining: number | null) {
+  if (remaining === null) {
+    return null;
+  }
+
+  return Math.max(remaining - 1, 0);
+}
+
+function formatLimitPair(remaining: number | null, limit: number) {
+  if (limit <= 0 || remaining === null) {
+    return "不限";
+  }
+
+  return `${remaining} / ${limit}`;
 }

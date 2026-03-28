@@ -23,10 +23,7 @@ export default async function HomePage() {
             ) : (
               <>
                 <Button asChild variant="outline">
-                  <Link href="/admin/login">管理员登录</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href="/agent/login">代理登录</Link>
+                  <Link href="/admin/login">登录</Link>
                 </Button>
                 <Button
                   asChild
@@ -44,13 +41,8 @@ export default async function HomePage() {
           <Card className="rounded-[32px] border-[#d9cebf] bg-[rgba(248,244,237,0.95)]">
             <CardContent className="p-7">
               <h1 className="max-w-4xl font-display text-[2.6rem] leading-[0.96] text-[#1f1a17] sm:text-[3.6rem] lg:text-[4.4rem]">
-                管理员配置库存与权限，
-                <br />
-                代理登录后直接发码。
+                代理发码系统
               </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-[#5f5347]">
-                已包含卡密类型、库存、代理审核、模板、发码记录与额度控制。
-              </p>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <SimpleMetric label="卡密类型" value={dashboard.codeTypes.length} />

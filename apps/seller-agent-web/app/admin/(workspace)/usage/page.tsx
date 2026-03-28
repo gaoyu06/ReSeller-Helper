@@ -18,8 +18,7 @@ export default async function AdminUsagePage() {
     <main className="grid gap-5 py-1">
       <SectionHeader
         eyebrow="使用日志"
-        title="追踪每一次发码记录。"
-        description="日志是额度控制、统计与排查问题的核心依据。"
+        title="使用日志"
       />
 
       <Card className="panel overflow-x-auto p-0">
@@ -56,7 +55,6 @@ export default async function AdminUsagePage() {
         ) : (
           <EmptyState
             title="还没有发码日志"
-            description="代理开始从工作台发码后，这里会自动出现完整记录。"
           />
         )}
         </CardContent>

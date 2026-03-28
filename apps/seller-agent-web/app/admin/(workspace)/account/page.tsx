@@ -24,17 +24,12 @@ export default async function AdminAccountPage() {
 
   return (
     <main className="grid gap-5 py-1">
-      <SectionHeader
-        eyebrow="管理员账号"
-        title="把后台访问权限维护得更明确。"
-        description="账号、安全与业务操作分开后，后台结构会更清楚，后续扩展也更稳。"
-      />
+      <SectionHeader eyebrow="管理员账号" title="管理员账号" />
 
       <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
         <InfoCard
           eyebrow="身份信息"
           title={account.name}
-          description="该账号负责后台管理与审核操作。"
         >
           <div className="grid gap-3 md:grid-cols-2">
             <Card className="rounded-[20px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none">
@@ -77,38 +72,26 @@ export default async function AdminAccountPage() {
                   <KeyRound className="h-4 w-4 text-[#8f8172]" />
                   <span className="font-medium">会话刷新</span>
                 </div>
-                <div className="mt-2 text-sm leading-6 text-[#766b5e]">
-                  修改密码后，当前管理员会话会立刻重建。
-                </div>
+                <div className="mt-2 text-sm leading-6 text-[#766b5e]">修改密码后生效</div>
               </CardContent>
             </Card>
           </div>
         </InfoCard>
 
-        <InfoCard
-          eyebrow="安全控制"
-          title="在一个页面里完成密码轮换"
-          description="后台权限与日常业务操作分开，可以减少误操作与认知负担。"
-        >
+        <InfoCard eyebrow="安全控制" title="密码修改">
           <PasswordChangeForm
             title="修改管理员密码"
-            description="建议定期更换管理员密码，尤其是在账号使用人发生变化时。"
             submitLabel="保存新密码"
             action={changeAdminPasswordAction}
           />
         </InfoCard>
       </section>
 
-      <InfoCard
-        eyebrow="快捷入口"
-        title="常用页面"
-        description="账号维护和核心业务入口放在一起。"
-      >
+      <InfoCard eyebrow="快捷入口" title="常用页面">
         <div className="grid gap-3 md:grid-cols-3">
           <Card className="rounded-[22px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none transition hover:border-[#cdbfae] hover:bg-[#f5eee4]">
             <CardContent className="px-4 py-3">
               <div className="font-medium text-[#1f1a17]">代理账号</div>
-              <div className="mt-1.5 text-sm leading-6 text-[#766b5e]">创建、审核、配置额度。</div>
               <Button asChild variant="link" className="mt-3">
                 <Link href="/admin/agents">前往页面</Link>
               </Button>
@@ -117,7 +100,6 @@ export default async function AdminAccountPage() {
           <Card className="rounded-[22px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none transition hover:border-[#cdbfae] hover:bg-[#f5eee4]">
             <CardContent className="px-4 py-3">
               <div className="font-medium text-[#1f1a17]">使用日志</div>
-              <div className="mt-1.5 text-sm leading-6 text-[#766b5e]">按时间回看每次发码。</div>
               <Button asChild variant="link" className="mt-3">
                 <Link href="/admin/usage">前往页面</Link>
               </Button>
@@ -126,7 +108,6 @@ export default async function AdminAccountPage() {
           <Card className="rounded-[22px] border-[#ddd1c3] bg-[#f8f3eb] shadow-none transition hover:border-[#cdbfae] hover:bg-[#f5eee4]">
             <CardContent className="px-4 py-3">
               <div className="font-medium text-[#1f1a17]">模板配置</div>
-              <div className="mt-1.5 text-sm leading-6 text-[#766b5e]">按代理维护输出文案。</div>
               <Button asChild variant="link" className="mt-3">
                 <Link href="/admin/templates">前往页面</Link>
               </Button>

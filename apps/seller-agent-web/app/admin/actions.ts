@@ -33,9 +33,9 @@ const reviewAgentSchema = z.object({
 const permissionSchema = z.object({
   agentId: z.string().min(1),
   codeTypeId: z.string().min(1),
-  dailyLimit: z.coerce.number().int().min(1),
-  monthlyLimit: z.coerce.number().int().min(1),
-  totalLimit: z.coerce.number().int().min(1),
+  dailyLimit: z.coerce.number().int().min(0),
+  monthlyLimit: z.coerce.number().int().min(0),
+  totalLimit: z.coerce.number().int().min(0),
 });
 
 export async function upsertCodeType(formData: FormData) {
@@ -504,11 +504,11 @@ function normalizeSlug(input: string) {
 }
 
 function assertLimitOrder(dailyLimit: number, monthlyLimit: number, totalLimit: number) {
-  if (monthlyLimit < dailyLimit) {
+  if (monthlyLimit > 0 && dailyLimit > 0 && monthlyLimit < dailyLimit) {
     throw new Error("月额度必须大于或等于日额度。");
   }
 
-  if (totalLimit < monthlyLimit) {
+  if (totalLimit > 0 && monthlyLimit > 0 && totalLimit < monthlyLimit) {
     throw new Error("总额度必须大于或等于月额度。");
   }
 }

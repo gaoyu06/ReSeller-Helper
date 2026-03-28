@@ -38,15 +38,15 @@ export function SectionHeader({
 }: {
   eyebrow: string;
   title: string;
-  description: string;
+  description?: string;
 }) {
   return (
     <div>
       <p className="text-[11px] tracking-[0.12em] text-[#6b5f53] uppercase">{eyebrow}</p>
       <h1 className="mt-2 text-[1.8rem] font-semibold text-[#1f1a17]">{title}</h1>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f5347]">
-        {description}
-      </p>
+      {description ? (
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-[#5f5347]">{description}</p>
+      ) : null}
     </div>
   );
 }
@@ -228,12 +228,12 @@ export function EmptyState({
   description,
 }: {
   title: string;
-  description: string;
+  description?: string;
 }) {
   return (
     <div className="rounded-[24px] border border-dashed border-[#d8ccbd] bg-[#f6efe6] px-5 py-6">
       <div className="text-sm font-medium text-[#241d18]">{title}</div>
-      <div className="mt-1.5 text-sm leading-6 text-[#5f5347]">{description}</div>
+      {description ? <div className="mt-1.5 text-sm leading-6 text-[#5f5347]">{description}</div> : null}
     </div>
   );
 }

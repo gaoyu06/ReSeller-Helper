@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 
 type Props = {
   title: string;
-  description: string;
+  description?: string;
   submitLabel: string;
   action: (
     state: PasswordActionState,
@@ -31,9 +31,11 @@ export function PasswordChangeForm({
       <div>
         <div className="section-label">密码修改</div>
         <h2 className="mt-2 text-xl font-semibold text-[#1f1a17]">{title}</h2>
-        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-[#5f5347]">
-          {description}
-        </p>
+        {description ? (
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-[#5f5347]">
+            {description}
+          </p>
+        ) : null}
       </div>
 
       <div className="grid gap-1.5 text-sm text-[#5f5347]">
@@ -84,9 +86,6 @@ export function PasswordChangeForm({
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-xs tracking-[0.08em] text-[#74685b]">
-          密码长度至少 6 位
-        </div>
         <Button type="submit" disabled={pending}>
           {pending ? "保存中..." : submitLabel}
         </Button>

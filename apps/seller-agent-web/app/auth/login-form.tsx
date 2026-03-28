@@ -16,7 +16,6 @@ type TabItem = {
 
 type Props = {
   title: string;
-  description: string;
   submitLabel: string;
   action: (
     state: LoginFormState,
@@ -29,7 +28,6 @@ const initialState: LoginFormState = {};
 
 export function LoginForm({
   title,
-  description,
   submitLabel,
   action,
   tabs,
@@ -40,7 +38,6 @@ export function LoginForm({
     <Card className="surface-strong w-full max-w-[440px] rounded-[28px]">
       <CardHeader className="p-6 pb-0">
         <CardTitle className="mt-3 font-display text-[2rem]">{title}</CardTitle>
-        <p className="mt-2 text-sm leading-6 text-[#5f5347]">{description}</p>
       </CardHeader>
 
       <CardContent className="p-6">

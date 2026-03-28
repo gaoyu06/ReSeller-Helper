@@ -22,7 +22,7 @@ const monoFont = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "代理发码系统",
-  description: "代理发码后台与工作台。",
+  description: "代理发码系统",
 };
 
 export default function RootLayout({

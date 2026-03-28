@@ -23,7 +23,7 @@ export function AgentRegisterForm({ action }: Props) {
   return (
     <Card className="surface-muted w-full rounded-[28px]">
       <CardHeader className="p-6 pb-0">
-        <CardTitle className="mt-3 font-display text-[2rem]">提交代理申请</CardTitle>
+        <CardTitle className="mt-3 font-display text-[2rem]">代理注册</CardTitle>
       </CardHeader>
 
       <CardContent className="p-6">
@@ -73,7 +73,7 @@ export function AgentRegisterForm({ action }: Props) {
               id="register-note"
               name="applicationNote"
               rows={4}
-              placeholder="可填写渠道说明、业务方向或备注信息。"
+              placeholder="选填"
             />
           </div>
 
@@ -90,7 +90,7 @@ export function AgentRegisterForm({ action }: Props) {
           ) : null}
 
           <Button type="submit" disabled={pending} className="mt-1">
-            {pending ? "提交中..." : "提交注册申请"}
+            {pending ? "提交中..." : "提交"}
           </Button>
         </form>
       </CardContent>

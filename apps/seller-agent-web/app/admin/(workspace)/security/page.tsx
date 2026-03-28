@@ -12,7 +12,6 @@ export default async function AdminSecurityPage() {
       <SectionHeader
         eyebrow="安全中心"
         title="账号安全"
-        description="只保留当前管理员账号信息与密码修改入口。"
       />
 
       <div className="flex justify-end">

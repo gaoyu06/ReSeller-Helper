@@ -13,7 +13,6 @@ export default async function AdminCodeTypesPage() {
       <SectionHeader
         eyebrow="卡密类型"
         title="卡密类型"
-        description="页面只保留列表，新增和修改都通过弹窗完成。"
       />
 
       <div className="flex justify-end">

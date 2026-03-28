@@ -11,11 +11,7 @@ export default async function AgentSecurityPage() {
 
   return (
     <main className="grid gap-4 py-1">
-      <SectionHeader
-        eyebrow="账号安全"
-        title="账号安全"
-        description="密码修改改为弹窗操作，页面只保留账号信息。"
-      />
+      <SectionHeader eyebrow="账号安全" title="账号安全" />
 
       <div className="flex justify-end">
         <AgentPasswordDialog />

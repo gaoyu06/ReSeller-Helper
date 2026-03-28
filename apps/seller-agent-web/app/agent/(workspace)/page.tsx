@@ -9,7 +9,6 @@ export default async function AgentOverviewPage() {
 
   return (
     <AgentHomeConsole
-      agentName={data.agent.name}
       permissions={data.permissions.map((permission) => ({
         id: permission.id,
         codeTypeId: permission.codeType.id,

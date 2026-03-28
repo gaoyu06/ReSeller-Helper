@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -73,7 +72,6 @@ export function AgentCreateDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>创建代理</DialogTitle>
-          <DialogDescription>新建代理账号，额度在下方按类型配置。</DialogDescription>
         </DialogHeader>
         <form action={upsertAgent} className="grid gap-3">
           <FormField label="显示名称" name="name" placeholder="输入代理名称" />
@@ -107,7 +105,6 @@ export function AgentEditDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>编辑代理</DialogTitle>
-          <DialogDescription>修改账号信息，不在这里设置类型额度。</DialogDescription>
         </DialogHeader>
         <form action={upsertAgent} className="grid gap-3">
           <input type="hidden" name="id" value={agent.id} />
@@ -142,11 +139,8 @@ export function AgentReviewDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>审核代理申请</DialogTitle>
-          <DialogDescription>
-            @{agent.username}
-            {agent.applicationNote ? ` · ${agent.applicationNote}` : ""}
-          </DialogDescription>
         </DialogHeader>
+        <div className="text-sm text-[#5f5347]">@{agent.username}</div>
         <div className="grid gap-4 md:grid-cols-2">
           <form action={approveAgentApplication} className="grid gap-3 rounded-[20px] border border-[#dcd1c4] bg-[#f8f3eb] p-4">
             <input type="hidden" name="id" value={agent.id} />
@@ -202,7 +196,6 @@ export function PermissionDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{triggerLabel}</DialogTitle>
-          <DialogDescription>按卡密类型单独设置代理额度。</DialogDescription>
         </DialogHeader>
         <form action={grantPermission} className="grid gap-3">
           <SelectField
@@ -218,9 +211,27 @@ export function PermissionDialog({
             defaultValue={initialValue?.codeTypeId ?? codeTypeOptions[0]?.value}
           />
           <div className="grid gap-3 md:grid-cols-3">
-            <FormField label="日额度" name="dailyLimit" type="number" defaultValue={String(initialValue?.dailyLimit ?? 5)} />
-            <FormField label="月额度" name="monthlyLimit" type="number" defaultValue={String(initialValue?.monthlyLimit ?? 60)} />
-            <FormField label="总额度" name="totalLimit" type="number" defaultValue={String(initialValue?.totalLimit ?? 500)} />
+            <FormField
+              label="日额度"
+              name="dailyLimit"
+              type="number"
+              defaultValue={formatLimitValue(initialValue?.dailyLimit)}
+              placeholder="不限"
+            />
+            <FormField
+              label="月额度"
+              name="monthlyLimit"
+              type="number"
+              defaultValue={formatLimitValue(initialValue?.monthlyLimit)}
+              placeholder="不限"
+            />
+            <FormField
+              label="总额度"
+              name="totalLimit"
+              type="number"
+              defaultValue={formatLimitValue(initialValue?.totalLimit)}
+              placeholder="不限"
+            />
           </div>
           <div className="flex justify-end">
             <Button type="submit">保存额度</Button>
@@ -250,7 +261,6 @@ export function CodeTypeDialog({
       <DialogContent className="max-w-[760px]">
         <DialogHeader>
           <DialogTitle>{triggerLabel}</DialogTitle>
-          <DialogDescription>配置卡密类型与默认模板。</DialogDescription>
         </DialogHeader>
         <form action={upsertCodeType} className="grid gap-3">
           {initialValue ? <input type="hidden" name="id" value={initialValue.id} /> : null}
@@ -264,10 +274,10 @@ export function CodeTypeDialog({
             />
           </div>
           <FormField
-            label="说明"
+            label="备注"
             name="description"
             defaultValue={initialValue?.description ?? ""}
-            placeholder="标准月卡兑换码"
+            placeholder="月卡兑换码"
           />
           <TextAreaField
             label="默认模板"
@@ -307,7 +317,6 @@ export function InventoryImportDialog({
       <DialogContent className="max-w-[760px]">
         <DialogHeader>
           <DialogTitle>导入库存</DialogTitle>
-          <DialogDescription>按行粘贴卡密内容并指定所属类型。</DialogDescription>
         </DialogHeader>
         <form action={importCodes} className="grid gap-3">
           <SelectField
@@ -345,11 +354,9 @@ export function AdminPasswordDialog() {
       <DialogContent className="max-w-[640px]">
         <DialogHeader>
           <DialogTitle>修改管理员密码</DialogTitle>
-          <DialogDescription>保存后旧管理员会话会失效。</DialogDescription>
         </DialogHeader>
         <PasswordChangeForm
           title="修改管理员密码"
-          description="先输入当前密码确认身份。系统会替换旧管理员会话，避免旧凭证继续可用。"
           submitLabel="保存新密码"
           action={changeAdminPasswordAction}
         />
@@ -367,11 +374,9 @@ export function AgentPasswordDialog() {
       <DialogContent className="max-w-[640px]">
         <DialogHeader>
           <DialogTitle>修改代理密码</DialogTitle>
-          <DialogDescription>保存后旧代理会话会失效。</DialogDescription>
         </DialogHeader>
         <PasswordChangeForm
           title="修改代理密码"
-          description="建议为代理账号设置强密码。新密码保存后，系统会撤销旧代理会话。"
           submitLabel="保存新密码"
           action={changeAgentPasswordAction}
         />
@@ -476,4 +481,12 @@ function SelectField({
       />
     </div>
   );
+}
+
+function formatLimitValue(value?: number) {
+  if (!value || value <= 0) {
+    return "";
+  }
+
+  return String(value);
 }

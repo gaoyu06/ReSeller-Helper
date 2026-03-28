@@ -139,9 +139,9 @@ export async function getAgentWorkspace(agentId: string) {
         todayIssued: today,
         monthIssued: month,
         totalIssued: total,
-        remainingToday: Math.max(permission.dailyLimit - today, 0),
-        remainingMonth: Math.max(permission.monthlyLimit - month, 0),
-        remainingTotal: Math.max(permission.totalLimit - total, 0),
+        remainingToday: getRemainingLimit(permission.dailyLimit, today),
+        remainingMonth: getRemainingLimit(permission.monthlyLimit, month),
+        remainingTotal: getRemainingLimit(permission.totalLimit, total),
         availableStock: stock,
       },
     };
@@ -169,4 +169,12 @@ function toCountMap(
   }>,
 ) {
   return new Map(rows.map((row) => [row.codeTypeId, row._count._all]));
+}
+
+function getRemainingLimit(limit: number, used: number) {
+  if (limit <= 0) {
+    return null;
+  }
+
+  return Math.max(limit - used, 0);
 }

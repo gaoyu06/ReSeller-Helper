@@ -27,7 +27,6 @@ export default async function AdminInventoryPage() {
       <SectionHeader
         eyebrow="库存管理"
         title="库存管理"
-        description="页面保留库存列表，导入动作改为弹窗。"
       />
 
       <div className="flex items-center justify-between gap-3">
