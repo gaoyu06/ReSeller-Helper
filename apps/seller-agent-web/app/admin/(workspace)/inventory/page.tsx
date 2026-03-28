@@ -1,102 +1,234 @@
-import { deleteCode, updateCodeStatus } from "@/app/admin/actions";
-import { getDashboardData } from "@/lib/dashboard-data";
-import { InventoryImportDialog } from "@/components/admin-dialog-forms";
-import { Badge, GhostButton, HiddenInput, SectionHeader } from "@/components/admin-ui";
-import { Button } from "@/components/ui/button";
-import { FormSelect } from "@/components/ui/form-select";
+import Link from "next/link";
+import { CodeStatus, Prisma } from "@prisma/client";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  clearCodesByFilter,
+  deleteCode,
+  deleteCodesBatch,
+  updateCodeStatus,
+} from "@/app/admin/actions";
+import { InventoryImportDialog } from "@/components/admin-dialog-forms";
+import {
+  Badge,
+  EmptyState,
+  HiddenInput,
+  SectionHeader,
+} from "@/components/admin-ui";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { FormSelect } from "@/components/ui/form-select";
+import { Label } from "@/components/ui/label";
+import { prisma } from "@/lib/prisma";
+import { InventoryTableClient } from "./inventory-table-client";
 
-const statusLabels = {
-  UNUSED: "未使用",
-  USED: "已使用",
-  DISABLED: "已停用",
-} as const;
+const PAGE_SIZE = 20;
 
-export default async function AdminInventoryPage() {
-  const dashboard = await getDashboardData();
+type SearchParams = Promise<{
+  codeTypeId?: string;
+  importBatch?: string;
+  page?: string;
+}>;
+
+export default async function AdminInventoryPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const page = Math.max(Number(params.page ?? "1") || 1, 1);
+  const codeTypeId = normalizeFilterValue(params.codeTypeId);
+  const importBatch = normalizeFilterValue(params.importBatch);
+
+  const where: Prisma.CodeWhereInput = {
+    ...(codeTypeId ? { codeTypeId } : {}),
+    ...(importBatch ? { importBatch } : {}),
+  };
+
+  const [codeTypes, inventory, totalCount, statsByStatus, batchRows] = await Promise.all([
+    prisma.codeType.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    }),
+    prisma.code.findMany({
+      where,
+      orderBy: {
+        importedAt: "desc",
+      },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: {
+        codeType: true,
+        usedByAgent: true,
+      },
+    }),
+    prisma.code.count({ where }),
+    prisma.code.groupBy({
+      by: ["status"],
+      where,
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.code.findMany({
+      where: {
+        importBatch: {
+          not: null,
+        },
+      },
+      distinct: ["importBatch"],
+      orderBy: {
+        importBatch: "desc",
+      },
+      select: {
+        importBatch: true,
+      },
+    }),
+  ]);
+
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+  const stats = statsByStatus.reduce(
+    (acc, item) => {
+      acc[item.status] = item._count._all;
+      return acc;
+    },
+    {
+      [CodeStatus.UNUSED]: 0,
+      [CodeStatus.USED]: 0,
+      [CodeStatus.DISABLED]: 0,
+    } as Record<CodeStatus, number>,
+  );
+
+  const batchOptions = batchRows
+    .map((item) => item.importBatch)
+    .filter((value): value is string => Boolean(value))
+    .map((value) => ({ value, label: value }));
+
+  const paginationBase = new URLSearchParams();
+  if (codeTypeId) {
+    paginationBase.set("codeTypeId", codeTypeId);
+  }
+  if (importBatch) {
+    paginationBase.set("importBatch", importBatch);
+  }
 
   return (
     <main className="grid gap-4 py-1">
-      <SectionHeader
-        eyebrow="库存管理"
-        title="库存管理"
-      />
+      <SectionHeader eyebrow="库存管理" title="库存管理" />
 
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-2">
-          <Badge tone="muted">可用 {dashboard.stats.unusedCodes}</Badge>
-          <Badge tone="muted">已使用 {dashboard.stats.usedCodes}</Badge>
-          <Badge tone="muted">已停用 {dashboard.stats.disabledCodes}</Badge>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          <Badge tone="muted">可用 {stats.UNUSED}</Badge>
+          <Badge tone="muted">已使用 {stats.USED}</Badge>
+          <Badge tone="muted">已停用 {stats.DISABLED}</Badge>
+          <Badge tone="muted">共 {totalCount}</Badge>
         </div>
-        <InventoryImportDialog
-          codeTypes={dashboard.codeTypes.map((codeType) => ({
-            id: codeType.id,
-            name: codeType.name,
-          }))}
-        />
+        <div className="flex flex-wrap gap-2">
+          <form action={clearCodesByFilter}>
+            <HiddenInput name="codeTypeId" value={codeTypeId} />
+            <HiddenInput name="importBatch" value={importBatch} />
+            <Button type="submit" variant="danger" size="sm" disabled={totalCount === 0}>
+              一键清空
+            </Button>
+          </form>
+          <InventoryImportDialog codeTypes={codeTypes} />
+        </div>
       </div>
 
+      <Card className="panel p-0">
+        <CardContent className="p-4">
+          <form className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto]">
+            <div className="grid gap-1.5">
+              <Label htmlFor="codeTypeId">套餐</Label>
+              <FormSelect
+                name="codeTypeId"
+                defaultValue={codeTypeId || "all"}
+                options={[
+                  { value: "all", label: "全部套餐" },
+                  ...codeTypes.map((codeType) => ({
+                    value: codeType.id,
+                    label: codeType.name,
+                  })),
+                ]}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="importBatch">批次</Label>
+              <FormSelect
+                name="importBatch"
+                defaultValue={importBatch || "all"}
+                options={[
+                  { value: "all", label: "全部批次" },
+                  ...batchOptions,
+                ]}
+              />
+            </div>
+            <div className="grid gap-1.5 md:self-end">
+              <Button type="submit">筛选</Button>
+            </div>
+            <div className="grid gap-1.5 md:self-end">
+              <Button asChild type="button" variant="outline">
+                <Link href="/admin/inventory">重置</Link>
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
       <div className="panel overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>卡密</TableHead>
-              <TableHead>类型</TableHead>
-              <TableHead>批次</TableHead>
-              <TableHead>状态</TableHead>
-              <TableHead>使用代理</TableHead>
-              <TableHead>操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {dashboard.recentCodes.map((code) => (
-              <TableRow key={code.id}>
-                <TableCell className="font-mono text-xs text-[#2c251f]">{code.value}</TableCell>
-                <TableCell className="text-[#5f5347]">{code.codeType.name}</TableCell>
-                <TableCell className="text-[#8f8172]">{code.importBatch || "—"}</TableCell>
-                <TableCell>
-                  <Badge tone="muted">{statusLabels[code.status]}</Badge>
-                </TableCell>
-                <TableCell className="text-[#8f8172]">{code.usedByAgent?.name || "—"}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-2">
-                    <form action={updateCodeStatus} className="flex flex-wrap gap-2">
-                      <HiddenInput name="id" value={code.id} />
-                      <FormSelect
-                        name="status"
-                        defaultValue={code.status}
-                        options={[
-                          { value: "UNUSED", label: "未使用" },
-                          { value: "USED", label: "已使用" },
-                          { value: "DISABLED", label: "已停用" },
-                        ]}
-                      />
-                      <GhostButton>更新</GhostButton>
-                    </form>
-                    <form action={deleteCode}>
-                      <HiddenInput name="id" value={code.id} />
-                      <Button
-                        type="submit"
-                        variant="danger"
-                        size="sm"
-                      >
-                        删除
-                      </Button>
-                    </form>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {inventory.length ? (
+          <InventoryTableClient
+            items={inventory.map((code) => ({
+              id: code.id,
+              value: code.value,
+              importBatch: code.importBatch,
+              status: code.status,
+              codeTypeName: code.codeType.name,
+              usedByAgentName: code.usedByAgent?.name ?? null,
+            }))}
+            updateAction={updateCodeStatus}
+            deleteAction={deleteCode}
+            batchDeleteAction={deleteCodesBatch}
+          />
+        ) : (
+          <EmptyState title="没有匹配的库存记录" />
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="text-sm text-[#74685b]">
+          第 {page} / {totalPages} 页
+        </div>
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="sm" disabled={page <= 1}>
+            <Link href={buildPageHref(paginationBase, page - 1)}>上一页</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm" disabled={page >= totalPages}>
+            <Link href={buildPageHref(paginationBase, page + 1)}>下一页</Link>
+          </Button>
+        </div>
       </div>
     </main>
   );
+}
+
+function buildPageHref(base: URLSearchParams, page: number) {
+  const params = new URLSearchParams(base);
+  params.set("page", String(page));
+  return `/admin/inventory?${params.toString()}`;
+}
+
+function normalizeFilterValue(value?: string) {
+  const normalized = value?.trim();
+  if (!normalized || normalized === "all") {
+    return "";
+  }
+
+  return normalized;
 }

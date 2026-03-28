@@ -388,6 +388,86 @@ export async function deleteCode(formData: FormData) {
   revalidatePath("/agent");
 }
 
+export async function deleteCodesBatch(formData: FormData) {
+  await requireAdminSession();
+
+  const ids = formData
+    .getAll("ids")
+    .map((item) => item.toString().trim())
+    .filter(Boolean);
+
+  if (!ids.length) {
+    throw new Error("请至少选择一条卡密。");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.usageLog.deleteMany({
+      where: {
+        codeId: {
+          in: ids,
+        },
+      },
+    });
+
+    await tx.code.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/agent");
+}
+
+export async function clearCodesByFilter(formData: FormData) {
+  await requireAdminSession();
+
+  const codeTypeId = optionalText(formData.get("codeTypeId"));
+  const importBatch = optionalText(formData.get("importBatch"));
+
+  const where = {
+    ...(codeTypeId ? { codeTypeId } : {}),
+    ...(importBatch ? { importBatch } : {}),
+  };
+
+  const matched = await prisma.code.findMany({
+    where,
+    select: {
+      id: true,
+    },
+  });
+
+  if (!matched.length) {
+    throw new Error("当前筛选结果没有可清空的卡密。");
+  }
+
+  const ids = matched.map((item) => item.id);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.usageLog.deleteMany({
+      where: {
+        codeId: {
+          in: ids,
+        },
+      },
+    });
+
+    await tx.code.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/agent");
+}
+
 export async function grantPermission(formData: FormData) {
   await requireAdminSession();
 
